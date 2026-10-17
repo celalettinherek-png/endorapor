@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EndoRapor – Yapılandırılmış Endoskopi Raporu</title>
+<meta name="description" content="Üst GİS endoskopi, kolonoskopi, ERCP, EUS ve PEG için kılavuz uyumlu, tek tıkla yapılandırılmış rapor oluşturucu. Veriler cihazınızdan çıkmaz.">
+<style>
+*{box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
+body{margin:0;background:#f0f4f8;color:#2d3748}
+header{background:linear-gradient(135deg,#1a6fb0,#12b5a5);color:#fff;padding:16px 24px}
+header h1{margin:0;font-size:21px}
+header p{margin:4px 0 0;opacity:.9;font-size:13px}
+nav{display:flex;background:#fff;border-bottom:2px solid #e2e8f0;position:sticky;top:0;z-index:5}
+nav button{flex:1;padding:13px;border:none;background:#fff;font-size:15px;font-weight:600;cursor:pointer;color:#4a5568;border-bottom:3px solid transparent}
+nav button.active{color:#1a6fb0;border-bottom-color:#12b5a5;background:#f7fbfc}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 540px;gap:20px;max-width:1520px;margin:18px auto;padding:0 16px 60px}
+@media(max-width:1150px){.wrap{grid-template-columns:minmax(0,1fr)}aside#preview{position:static!important;max-height:none!important}}
+.card{background:#fff;border-radius:12px;padding:16px 20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);border-top:5px solid #1a6fb0}
+.card.green{border-top-color:#12b5a5}.card.orange{border-top-color:#e8912d}.card.purple{border-top-color:#7b5ea7}.card.red{border-top-color:#c0392b}
+.card h2{margin:0 0 10px;font-size:17px;color:#1a6fb0}
+.card h2 small{font-weight:400;color:#718096;font-size:12px}
+.card h3{font-size:13.5px;color:#374152;margin:14px 0 6px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>.f{flex:1;min-width:140px}
+label{display:block;font-size:12.5px;margin:6px 0 2px;color:#4a5568;font-weight:600}
+input[type=text],input[type=number],input[type=date],input[type=time],select,textarea{width:100%;padding:7px 9px;border:1px solid #cbd5e0;border-radius:8px;font-size:13.5px;background:#fff;color:#2d3748}
+.cb{display:inline-flex;align-items:center;gap:6px;font-weight:500;margin:8px 16px 0 0;font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.chip{border:1px solid #cbd5e0;background:#fff;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:#2d3748}
+.chip:hover{border-color:#12b5a5}
+.chip.on{background:#12b5a5;border-color:#12b5a5;color:#fff;font-weight:600}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+.pbtn{background:#1a6fb0;color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer}
+.pbtn.alt{background:#fff;color:#1a6fb0;border:1px solid #1a6fb0}
+.pbtn.ghost{background:#edf2f7;color:#2d3748}
+.score{margin-top:8px;padding:8px 12px;border-radius:8px;font-weight:700;font-size:13.5px;background:#edf2f7}
+.score.ok{background:#d9f7ef;color:#0e8a7d}.score.mid{background:#fef3d8;color:#8a5a00}.score.bad{background:#fdeaea;color:#c0392b}
+.tbl{overflow-x:auto;margin-top:8px}
+.tbl table{border-collapse:collapse;width:100%;min-width:820px}
+.tbl th{font-size:11.5px;text-align:left;color:#0e8a7d;background:#f0faf9;padding:5px}
+.tbl td{padding:3px}
+.tbl select,.tbl input{font-size:12px;padding:5px}
+.del{border:none;background:#fdeaea;color:#c0392b;border-radius:6px;cursor:pointer;padding:5px 8px}
+table.ses{width:100%;border-collapse:collapse;margin-top:4px}
+table.ses th,table.ses td{font-size:12px;padding:3px;text-align:center}
+table.ses th{background:#f4f0fa;color:#5b3f8a}
+.hint{font-size:12px;color:#718096;margin:4px 0}
+.hidden{display:none!important}
+aside#preview{position:sticky;top:58px;align-self:start;max-height:calc(100vh - 70px);overflow:auto;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.toolbar{position:sticky;top:0;background:#fff;padding:10px 14px;border-bottom:1px solid #e2e8f0;display:flex;gap:6px;flex-wrap:wrap;z-index:2}
+.warn{margin:10px 14px 0;padding:8px 12px;background:#fff8e1;border-left:4px solid #e8912d;border-radius:6px;font-size:12.5px}
+.warn ul{margin:4px 0 0 16px;padding:0}
+#report{padding:18px 22px;color:#111;font-size:13px;line-height:1.5;background:#fff}
+#report .rh{text-align:center;border-bottom:2px solid #111;padding-bottom:6px;margin-bottom:10px}
+#report .rh .inst{font-size:12px}
+#report .rh .ttl{font-size:17px;font-weight:700;letter-spacing:.5px;margin-top:2px;color:#c00000}
+#report h4{font-size:12.5px;margin:12px 0 4px;color:#c00000;border-bottom:1px solid #c00000;padding-bottom:2px;text-transform:uppercase;letter-spacing:.3px}
+#report table{border-collapse:collapse;width:100%;font-size:12px;margin:4px 0}
+#report table.kv td{padding:2px 4px;vertical-align:top}
+#report table.kv td.k{font-weight:600;width:19%;white-space:nowrap}
+#report table.lt th{border-top:1px solid #111;border-bottom:1px solid #111;text-align:left;padding:3px 4px;font-weight:600}
+#report table.lt td{padding:3px 4px;vertical-align:top}
+#report table.lt tbody tr:last-child td{border-bottom:1px solid #111}
+#report ol,#report ul{margin:2px 0 2px 18px;padding:0}
+#report p{margin:2px 0}
+#report .qi{font-size:11.5px;color:#333}
+#report .sig{margin-top:22px;text-align:right}
+#report .sub{font-weight:600}
+@media print{
+  #report h4,#report .rh .ttl{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  header,nav,#form,.toolbar,.warn{display:none!important}
+  body{background:#fff}
+  .wrap{display:block;margin:0;padding:0;max-width:none}
+  aside#preview{position:static;max-height:none;overflow:visible;box-shadow:none;border-radius:0}
+  #report{padding:0;font-size:11pt}
+  @page{size:A4;margin:14mm}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🩺 EndoRapor</h1>
+  <p>Üst GİS Endoskopi • Kolonoskopi • ERCP • EUS • PEG | Tek tıkla şablon, canlı rapor, kılavuz kontrolü, skor hesaplayıcılar (v0.3) • Girilen veriler yalnızca bu tarayıcıda işlenir, hiçbir sunucuya gönderilmez.</p>
+</header>
+
+<nav>
+  <button class="active" data-tab="egd">Üst GİS Endoskopi</button>
+  <button data-tab="colon">Kolonoskopi</button>
+  <button data-tab="ercp">ERCP</button>
+  <button data-tab="eus">EUS</button>
+  <button data-tab="peg">PEG</button>
+</nav>
+
+<div class="wrap">
+  <section id="form">
+    <div class="card" id="common"></div>
+    <div id="pane-egd" class="pane"></div>
+    <div id="pane-colon" class="pane hidden"></div>
+    <div id="pane-ercp" class="pane hidden"></div>
+    <div id="pane-eus" class="pane hidden"></div>
+    <div id="pane-peg" class="pane hidden"></div>
+  </section>
+  <aside id="preview">
+    <div class="toolbar">
+      <button class="pbtn" id="btn-print">🖨️ Yazdır / PDF</button>
+      <button class="pbtn alt" id="btn-copy" title="Ad soyad, protokol no ve yaş/cinsiyet kopyalanmaz (Endocam için)">📋 Metni kopyala (kimliksiz)</button>
+      <button class="pbtn ghost" id="btn-json" title="Ad ve protokol no hariç yapılandırılmış veri">⬇️ Anonim veri (JSON)</button>
+    </div>
+    <div id="warn" class="warn hidden"></div>
+    <div id="report"></div>
+  </aside>
+</div>
+<footer style="max-width:1520px;margin:0 auto 30px;padding:0 16px;font-size:12px;color:#718096">
+EndoRapor klinik karar desteği değildir; raporun doğruluğu ve kılavuz uyarılarının hastaya uygunluğu endoskopistin sorumluluğundadır. Hasta verisi sunucuya gönderilmez veya saklanmaz.
+</footer>
+
+<script>
+/* ===================== YARDIMCILAR ===================== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function v(id){ const e=$(id); if(!e) return ''; if(e.type==='checkbox') return e.checked; return String(e.value).trim(); }
+function n(id){ const x=parseFloat(String(v(id)).replace(',','.')); return isNaN(x)?null:x; }
+function ch(g){ return [...document.querySelectorAll('.chips[data-g="'+g+'"] .chip.on')].map(b=>b.dataset.v); }
+function setChips(g,arr){ document.querySelectorAll('.chips[data-g="'+g+'"] .chip').forEach(b=>b.classList.toggle('on',arr.includes(b.dataset.v))); }
+function setv(id,val){ const e=$(id); if(!e) return; if(e.type==='checkbox') e.checked=!!val; else e.value=val; }
+function opt(list,def){ return list.map(o=>{ const [val,lab]=Array.isArray(o)?o:[o,o]; return '<option value="'+esc(val)+'"'+(def!==undefined&&String(val)===String(def)?' selected':'')+'>'+esc(lab)+'</option>'; }).join(''); }
+function S(id,lab,list,def){ return '<div class="f"><label for="'+id+'">'+lab+'</label><select id="'+id+'">'+opt(list,def)+'</select></div>'; }
+function T(id,lab,ph,val,type){ return '<div class="f"><label for="'+id+'">'+lab+'</label><input type="'+(type||'text')+'" id="'+id+'" placeholder="'+esc(ph||'')+'" value="'+esc(val||'')+'"'+(type==='number'?' min="0" step="any"':'')+'></div>'; }
+const N = (id,lab,ph) => T(id,lab,ph,'','number');
+function C(id,lab,on){ return '<label class="cb"><input type="checkbox" id="'+id+'"'+(on?' checked':'')+'> '+lab+'</label>'; }
+function G(g,items,single){ return '<div class="chips" data-g="'+g+'"'+(single?' data-single':'')+'>'+items.map(i=>'<button type="button" class="chip" data-v="'+esc(i)+'">'+esc(i)+'</button>').join('')+'</div>'; }
+const R = (...f) => '<div class="row">'+f.join('')+'</div>';
+function card(t,b,c){ return '<div class="card '+(c||'')+'"><h2>'+t+'</h2>'+b+'</div>'; }
+const H3 = t => '<h3>'+t+'</h3>';
+const join = a => a.filter(Boolean).join(', ');
+const lc = s => (s && !/^[A-ZÇĞİÖŞÜ]{2}/.test(s)) ? s.charAt(0).toLocaleLowerCase('tr') + s.slice(1) : s;
+function rows(tb){ return [...$(tb).rows].map(tr=>Object.fromEntries([...tr.querySelectorAll('[data-f]')].map(e=>[e.dataset.f,e.value.trim()]))); }
+function mk(){ let i=0; const out=[]; return { sec(t,body){ if(!body) return; i++; out.push('<h4>'+i+'. '+t+'</h4>'+body); }, html(){ return out.join(''); } }; }
+const P = s => '<p>'+s+'</p>';
+const UL = a => a.length ? '<ul>'+a.map(x=>'<li>'+x+'</li>').join('')+'</ul>' : '';
+const OL = a => a.length ? '<ol>'+a.map(x=>'<li>'+x+'</li>').join('')+'</ol>' : '';
+const ok = b => b ? '✔' : '✘';
+
+/* ===================== ORTAK HASTA KARTI ===================== */
+const SED=['Sedasyonsuz','Topikal farenks anestezisi (lidokain sprey)','Midazolam','Midazolam + fentanil','Propofol','Midazolam + propofol','Genel anestezi'];
+$('common').innerHTML = '<h2>Hasta ve İşlem Bilgileri <small>(tüm raporlarda ortak)</small></h2>'+
+ R(T('c_kurum','Kurum / ünite','ör. … Hastanesi – Gastroenteroloji Endoskopi Ünitesi'))+
+ R(T('c_ad','Ad Soyad'),T('c_prot','Protokol / dosya no'),T('c_yas','Yaş','', '', 'number'),S('c_cins','Cinsiyet',['Erkek','Kadın']))+
+ R(T('c_tarih','Tarih','','','date'),T('c_saat','Saat','','','time'),T('c_endo','Endoskopist','ör. Uzm. Dr. Ad Soyad'),T('c_yard','Yardımcı personel'))+
+ R(S('c_tur','Hasta türü',['Ayaktan','Yatan','Acil','Yoğun bakım']),S('c_asa','ASA',['ASA I','ASA II','ASA III','ASA IV','ASA V'],'ASA II'),
+   S('c_at','Antitrombotik',['Yok','Asetilsalisilik asit','Klopidogrel','Prasugrel / tikagrelor','İkili antiplatelet','Varfarin','DOAK','DMAH']),
+   S('c_atd','Antitrombotik yönetimi',['—','Kesintisiz devam edildi','Kılavuza uygun süre kesildi','Köprüleme yapıldı']))+
+ R(S('c_sed','Sedasyon',SED,'Midazolam + propofol'),S('c_sedlvl','Sedasyon düzeyi',['Minimal','Orta (bilinçli)','Derin','Genel anestezi'],'Orta (bilinçli)'),
+   S('c_sedby','Sedasyonu uygulayan',['Endoskopi ekibi','Anestezi ekibi']),T('c_doz','Doz(lar)','ör. propofol 120 mg + midazolam 2 mg'))+
+ R(T('c_cihaz','Endoskop / cihaz','marka, model, seri no'),S('c_ins','İnsüflasyon',['CO₂','Hava']))+
+ '<div>'+C('c_onam','Yazılı aydınlatılmış onam alındı',true)+C('c_mon','Monitörizasyon: SpO₂, NIBP, EKG',true)+C('c_o2','Nazal O₂ desteği',true)+C('c_qi','Raporda kalite özetini göster',true)+'</div><p class="hint">Kurum, endoskopist, cihaz ve sedasyon tercihleri bu tarayıcıda hatırlanır (hasta bilgileri hatırlanmaz).</p>';
+$('c_tarih').value = new Date().toISOString().slice(0,10);
+const PREF_KEYS=['c_kurum','c_endo','c_yard','c_cihaz','c_sed','c_sedlvl','c_sedby','c_ins','c_qi','c_mon','c_o2'];
+try{ const pr=JSON.parse(localStorage.getItem('endorapor_tercih')||'{}'); PREF_KEYS.forEach(k=>{ if(k in pr) setv(k,pr[k]); }); }catch(e){}
+function savePrefs(){ try{ const o={}; PREF_KEYS.forEach(k=>o[k]=v(k)); localStorage.setItem('endorapor_tercih',JSON.stringify(o)); }catch(e){} }
+PREF_KEYS.forEach(k=>{ const e=$(k); if(e) e.addEventListener('change',savePrefs); });
+
+/* ===================== ÜST GİS ===================== */
+const EGD_END=['Dispepsi','Reflü semptomları','Disfaji / odinofaji','Demir eksikliği anemisi','Üst GİS kanama (hematemez / melena)','Varis taraması (siroz)','Barrett sürveyansı','Gastrik atrofi / İM sürveyansı','Çölyak hastalığı şüphesi','Kilo kaybı','Ülser iyileşme kontrolü','Yabancı cisim / gıda impaksiyonu','Kalıcı kusma'];
+const EGD_OZ=['Kandida plakları','EoE bulguları','Schatzki halkası','Peptik darlık','Mallory-Weiss yırtığı','Özofagus divertikülü','Akalazya ile uyumlu görünüm'];
+const EGD_MID=['Eritematöz gastropati','Eroziv gastropati','Nodüler antrum','Safra reflüsü','Portal hipertansif gastropati (hafif)','Portal hipertansif gastropati (ağır)','GAVE','İM şüphesi (görüntüleme ile)','Fundik gland polipleri'];
+const EGD_DUO=['Bulbit','Eroziv bulbit','Postbulber duodenit','Villöz atrofi bulguları (çentiklenme / mozaik)','Periampuller divertikül','Bulbus deformitesi'];
+const EGD_BX=['Güncellenmiş Sydney (5 biyopsi)','Çölyak protokolü (D2 ×4 + bulbus ×2)','EoE protokolü (≥6, proksimal + distal)','Barrett – Seattle protokolü','HÜT (antrum + korpus)','Hedefli biyopsi'];
+const EGD_THER=['Gıda impaksiyonu temizlendi','Yabancı cisim çıkarıldı','APC (GAVE / anjiyoektazi)','Siyanoakrilat enjeksiyonu (gastrik varis)','PEG yerleştirildi'];
+const EGD_REC=['Patoloji sonucu ile poliklinik kontrolü','PPI 8 hafta (standart doz)','H. pylori sonucuna göre eradikasyon','Eradikasyon sonrası doğrulama testi (≥4 hafta sonra, PPI 2 hafta kesilerek)','Yüksek doz PPI 72 saat (endoskopik hemostaz sonrası)','Gastrik ülser iyileşme kontrolü: 8–12 hafta sonra EGD + biyopsi','NSAİİ kullanımından kaçınılmalı','EVL programı: 2–4 hafta arayla eradikasyona kadar','NSBB (karvedilol tercih) – Baveno VII','Oral alım 2 saat sonra başlanabilir'];
+const LES_T=['Ülser','Erozyon(lar)','Polip','Subepitelyal lezyon','Kitle / malignite şüphesi','Anjiyoektazi','Darlık','Divertikül'];
+const OZ_LOC=['Üst özofagus','Orta özofagus','Alt özofagus','Özofagogastrik bileşke'];
+const GAST_LOC=['Kardiya','Fundus','Korpus – küçük kurvatur','Korpus – büyük kurvatur','Korpus – ön duvar','Korpus – arka duvar','İnsisura angularis','Antrum','Pilor'];
+const DUO_LOC=['Bulbus – ön duvar','Bulbus – arka duvar','İnen duodenum (D2)'];
+const LES_LOC=[...OZ_LOC,...GAST_LOC,...DUO_LOC];
+const LES_C=['—','Forrest Ia','Forrest Ib','Forrest IIa','Forrest IIb','Forrest IIc','Forrest III','Paris 0-Ip','Paris 0-Is','Paris 0-IIa','Paris 0-IIb','Paris 0-IIc','Paris 0-III'];
+const LES_A=['—','Biyopsi','Adrenalin enjeksiyonu + hemoklip','Adrenalin enjeksiyonu + termal koagülasyon','Hemoklip','Termal koagülasyon','Hemostatik toz','Over-the-scope klip (OTSC)','Adrenalin enjeksiyonu (tek başına)','Soğuk snare polipektomi','Sıcak snare polipektomi','APC'];
+const GREG=['Kardiya','Fundus','Korpus','İnsisura angularis','Antrum','Pilor'];
+const gReg=l=>l.startsWith('Korpus')?'Korpus':l;
+const MID_REG={'Nodüler antrum':['Antrum'],'GAVE':['Antrum'],'Fundik gland polipleri':['Fundus','Korpus'],'Portal hipertansif gastropati (hafif)':['Fundus','Korpus'],'Portal hipertansif gastropati (ağır)':['Fundus','Korpus']};
+const GV_REG={GOV1:'Kardiya',GOV2:'Fundus',IGV1:'Fundus'};
+const DUO_REG={'Bulbit':'Bulbus','Eroziv bulbit':'Bulbus','Bulbus deformitesi':'Bulbus','Postbulber duodenit':'İnen duodenum (D2)','Villöz atrofi bulguları (çentiklenme / mozaik)':'İnen duodenum (D2)','Periampuller divertikül':'İnen duodenum (D2)'};
+const REACH_E=[['D2','İnen duodenum (D2)'],['Bulbus','Bulbus'],['Mide','Mide (pilor geçilemedi)'],['Ozofagus','Özofagus (ilerlenemedi)']];
+
+$('pane-egd').innerHTML =
+ card('Hızlı şablonlar <small>(tek tık tüm formu doldurur; sonra yalnız farkı düzeltin)</small>','<div class="presets">'+
+   '<button class="pbtn" data-preset="egd:normal">Normal EGD (dispepsi + Sydney)</button>'+
+   '<button class="pbtn" data-preset="egd:reflu">Reflü özofajit LA-B + hiatal herni</button>'+
+   '<button class="pbtn" data-preset="egd:ulser">Kanayan ülser (Forrest Ib) + hemostaz</button>'+
+   '<button class="pbtn" data-preset="egd:varis">Büyük varis + EVL</button>'+
+   '<button class="pbtn" data-preset="egd:barrett">Barrett sürveyansı (C2M4)</button>'+
+   '<button class="pbtn ghost" data-reset="egd">Formu temizle</button></div>','purple')+
+ card('Endikasyon ve işlem tekniği', G('e_end',EGD_END)+R(T('e_end_txt','Ek endikasyon / klinik not'))+
+   R(S('e_reach','Ulaşılan nokta',REACH_E),S('e_vis','Mukoza görünürlüğü',['Mükemmel','Yeterli','Yetersiz (gıda / sıvı artığı)'],'Yeterli'),N('e_time','İnceleme süresi (dk)','≥7'))+
+   H3('Görüntüleme')+G('e_img',['HD beyaz ışık','NBI / BLI / LCI','Lugol kromoendoskopi','Asetik asit','Magnifikasyon'])+
+   '<div>'+C('e_retro','Midede retrofleksiyon yapıldı',true)+C('e_photo','Anatomik işaretler fotoğrafla belgelendi',true)+'</div>')+
+ card('Özofagus',
+   R(S('e_la','Reflü özofajit (Los Angeles)',['Yok','A','B','C','D']),S('e_scj','Skuamokolumnar bileşke',['Düzenli','Düzensiz Z-hattı (<1 cm)','Barrett şüphesi (≥1 cm)']),N('e_zcm','Z-hattı (ön dişlerden, cm)'))+
+   '<div id="e_bar" class="row hidden">'+N('e_c','Prague C (cm)')+N('e_m','Prague M (cm)')+'</div>'+
+   R(N('e_hh','Hiatal herni (cm; boş = yok)'),S('e_hill','ÖGB flep valvi (Hill)',['Değerlendirilmedi','I','II','III','IV']))+
+   R(S('e_var','Özofagus varisi',['Yok','Küçük (<5 mm)','Büyük (≥5 mm)']),S('e_vstig','Varis kanama stigması',['Yok','Aktif kanama','Beyaz meme başı / fibrin tıkacı']))+
+   C('e_rcs','Kırmızı renk işaretleri (red wale / kiraz kırmızısı lekeler)')+
+   H3('Diğer özofagus bulguları')+G('e_oz',EGD_OZ)+
+   '<div id="e_eref" class="hidden">'+H3('EREFS (eozinofilik özofajit)')+
+   R(S('e_ef_e','Ödem',[[0,'0 – Yok'],[1,'1 – Var']]),S('e_ef_r','Halkalar',[[0,'0 – Yok'],[1,'1 – Hafif'],[2,'2 – Orta'],[3,'3 – Şiddetli']]),S('e_ef_x','Eksüda',[[0,'0 – Yok'],[1,'1 – ≤%10'],[2,'2 – >%10']]),S('e_ef_f','Çizgilenme',[[0,'0 – Yok'],[1,'1 – Var']]),S('e_ef_s','Darlık',[[0,'0 – Yok'],[1,'1 – Var']]))+
+   '<div class="score" id="eref-out"></div></div>','green')+
+ card('Mide', G('e_mid',EGD_MID)+H3('Eritematöz / eroziv gastropati yerleşimi <small>(seçilmezse antrum)</small>')+G('e_gloc',GREG)+
+   R(S('e_kim','Endoskopik atrofi (Kimura-Takemoto)',['Değerlendirilmedi','Atrofi yok','C1','C2','C3','O1','O2','O3']),S('e_gv','Gastrik varis (Sarin)',['Yok','GOV1','GOV2','IGV1','IGV2']),
+     S('e_hp','H. pylori testi',['Yapılmadı','Hızlı üreaz testi pozitif','Hızlı üreaz testi negatif','Histolojiye bırakıldı'])),'green')+
+ card('Duodenum', G('e_duo',EGD_DUO),'green')+
+ card('Lezyon tablosu <small>(ülser, polip, kitle… her satır bir lezyon)</small>','<div class="presets">'+
+   '<button class="pbtn alt" data-addles="ulserIb">+ Kanayan ülser Ib</button>'+
+   '<button class="pbtn alt" data-addles="ulserIII">+ Temiz tabanlı ülser (III)</button>'+
+   '<button class="pbtn alt" data-addles="polip">+ Gastrik polip</button>'+
+   '<button class="pbtn alt" data-addles="sel">+ Subepitelyal lezyon</button>'+
+   '<button class="pbtn alt" data-addles="kitle">+ Kitle (biyopsi)</button>'+
+   '<button class="pbtn ghost" data-addles="bos">+ Boş satır</button></div>'+
+   '<div class="tbl"><table><thead><tr><th>Tip</th><th>Lokalizasyon</th><th>Boyut (mm)</th><th>Sınıflama</th><th>Girişim</th><th></th></tr></thead><tbody id="egd-les"></tbody></table></div>','orange')+
+ card('Biyopsi protokolleri ve terapötik girişimler', G('e_bx',EGD_BX)+
+   R(N('e_evl','Varis bant ligasyonu (bant sayısı)'),T('e_dil','Dilatasyon','ör. 15 mm TTS balon'))+G('e_ther',EGD_THER)+R(T('e_ther_txt','Ek girişim notu')))+
+ card('Komplikasyon ve öneriler', R(S('e_comp','Komplikasyon',['Yok','Geçici desatürasyon (müdahale ile düzeldi)','İşleme bağlı kanama (endoskopik kontrol sağlandı)','Perforasyon','Aspirasyon','Diğer']),T('e_comp_txt','Komplikasyon açıklaması'))+
+   H3('Öneriler')+G('e_rec',EGD_REC)+R(T('e_rec_txt','Ek öneri')),'red');
+
+function lesRow(o){ o=o||{}; const tr=document.createElement('tr');
+  tr.innerHTML='<td><select data-f="t">'+opt(LES_T,o.t)+'</select></td><td><select data-f="l">'+opt(LES_LOC,o.l||'Antrum')+'</select></td>'+
+   '<td><input data-f="s" type="number" min="0" value="'+(o.s??'')+'" style="width:70px"></td><td><select data-f="c">'+opt(LES_C,o.c)+'</select></td>'+
+   '<td><select data-f="a">'+opt(LES_A,o.a)+'</select></td><td><button class="del" title="Sil">✕</button></td>';
+  $('egd-les').appendChild(tr); }
+const LES_Q={ ulserIb:{t:'Ülser',l:'Bulbus – arka duvar',s:12,c:'Forrest Ib',a:'Adrenalin enjeksiyonu + hemoklip'},
+  ulserIII:{t:'Ülser',l:'Antrum',s:8,c:'Forrest III',a:'Biyopsi'}, polip:{t:'Polip',l:'Korpus – büyük kurvatur',s:6,c:'Paris 0-Is',a:'Soğuk snare polipektomi'},
+  sel:{t:'Subepitelyal lezyon',l:'Korpus – büyük kurvatur',s:15,c:'—',a:'—'}, kitle:{t:'Kitle / malignite şüphesi',l:'Antrum',s:30,c:'Paris 0-III',a:'Biyopsi'}, bos:{} };
+
+/* ===================== KOLONOSKOPİ ===================== */
+const SEGS=['Terminal ileum','Çekum','Çıkan kolon','Hepatik fleksura','Transvers kolon','Splenik fleksura','İnen kolon','Sigmoid kolon','Rektum','Anal kanal'];
+const K_END=['Tarama (ortalama risk)','FIT / GGK pozitifliği','Aile öyküsü (1. derece KRK)','Polipektomi sonrası sürveyans','KRK cerrahisi sonrası sürveyans','Rektal kanama','Demir eksikliği anemisi','Kronik ishal','Barsak alışkanlığında değişiklik','İBH – aktivite değerlendirmesi','İBH – displazi sürveyansı','Görüntülemede anormallik / kitle'];
+const PARIS=['0-Ip','0-Isp','0-Is','0-IIa','0-IIb','0-IIc','0-IIa+IIc','0-III','LST-G homojen','LST-G nodüler mikst','LST-NG düz-elevasyon','LST-NG psödodeprese','Kitle (ülsere / vejetan)'];
+const OPTDX=['Değerlendirilmedi','NICE 1 (hiperplastik)','NICE 2 (adenom)','NICE 3 (derin SM invazyon)','JNET 1','JNET 2A','JNET 2B','JNET 3','SSL şüphesi (WASP)'];
+const METH=['Soğuk snare','Soğuk snare – piecemeal','Soğuk forseps','Sıcak snare','EMR (submukozal enjeksiyon) – en bloc','EMR – piecemeal','Su altı EMR (UEMR)','ESD','Biyopsi alındı (rezeksiyon yapılmadı)','Yerinde bırakıldı (yüksek güvenli optik tanı)','Bırakıldı – ileri tedaviye yönlendirildi'];
+const METH_TXT={'Soğuk snare':'soğuk snare ile','Soğuk snare – piecemeal':'soğuk snare ile parçalı (piecemeal)','Soğuk forseps':'soğuk forseps ile','Sıcak snare':'sıcak snare ile',
+  'EMR (submukozal enjeksiyon) – en bloc':'submukozal enjeksiyon sonrası EMR ile en bloc','EMR – piecemeal':'submukozal enjeksiyon sonrası EMR ile parçalı (piecemeal)','Su altı EMR (UEMR)':'su altı EMR ile','ESD':'ESD ile en bloc'};
+const EXTRA=['—','Profilaktik klip','Hemostatik klip (intraprosedürel kanama)','Endoloop','Tatuaj (lezyonun 2–3 cm distaline)','Klip + tatuaj','Kenar ablasyonu (STSC / APC)','Kenar ablasyonu + klip'];
+const K_OTH=['Anjiyoektazi','Melanozis koli','Anal fissür','Radyasyon proktopatisi','Psödomembranlar','Anastomoz – doğal görünüm','Nonspesifik aftöz lezyonlar','Lümen darlığı'];
+const K_BX=['Random kolon biyopsileri (sağ ve sol ayrı kap)','Terminal ileum biyopsisi','İBH segmental biyopsiler (her segmentten ≥2, ayrı kaplar)','Displazi sürveyansı – hedefli biyopsiler','Kitleden biyopsi (≥6 parça)'];
+const K_REC=['Patoloji sonucu ile poliklinik kontrolü','Antitrombotik tedaviye kesintisiz devam','Polipektomi sonrası 24 saat ağır efordan kaçınma','İBH tedavisinin yeniden değerlendirilmesi (treat-to-target)','Uyarı semptomları anlatıldı (rektal kanama, şiddetli karın ağrısı, ateş)'];
+const DIV_REG={'Sigmoid kolon':['Sigmoid kolon'],'İnen kolon':['İnen kolon'],'Transvers kolon':['Transvers kolon'],'Sağ kolon':['Çekum','Çıkan kolon']};
+const OTH_REG={'Anal fissür':'Anal kanal','Radyasyon proktopatisi':'Rektum'};
+const UC_EXT={E1:['Rektum'],E2:['İnen kolon','Sigmoid kolon','Rektum'],E3:['Çekum','Çıkan kolon','Hepatik fleksura','Transvers kolon','Splenik fleksura','İnen kolon','Sigmoid kolon','Rektum']};
+const SES_REG=[['Terminal ileum'],['Çekum','Çıkan kolon'],['Transvers kolon'],['İnen kolon','Sigmoid kolon'],['Rektum']];
+const BB=[[0,'0 – Katı dışkı, mukoza görülemiyor'],[1,'1 – Kısmi görünüm'],[2,'2 – Minör artık, iyi görünüm'],[3,'3 – Temiz, tam görünüm']];
+const SES_SEG=['İleum','Sağ kolon','Transvers kolon','Sol kolon','Rektum'];
+const SES_P=['Ülser boyutu','Ülserli yüzey','Etkilenen yüzey','Darlık'];
+const SES_O=[['Yok','Aftöz 0.1–0.5 cm','Büyük 0.5–2 cm','Çok büyük >2 cm'],['Yok','<%10','%10–30','>%30'],['Yok','<%50','%50–75','>%75'],['Yok','Tek, geçilebilir','Multipl, geçilebilir','Geçilemez']];
+
+let sesHTML='<table class="ses"><tr><th>Segment</th>'+SES_P.map(p=>'<th>'+p+'</th>').join('')+'</tr>';
+SES_SEG.forEach((s,i)=>{ sesHTML+='<tr><td style="text-align:left;font-weight:600">'+s+'</td>'+SES_P.map((p,j)=>'<td><select class="sesv" id="ses_'+i+'_'+j+'">'+opt(SES_O[j].map((o,k)=>[k,k+' – '+o]))+'</select></td>').join('')+'</tr>'; });
+sesHTML+='</table>';
+
+$('pane-colon').innerHTML =
+ card('Hızlı şablonlar <small>(tek tık tüm formu doldurur)</small>','<div class="presets">'+
+   '<button class="pbtn" data-preset="colon:normal">Normal tarama kolonoskopisi</button>'+
+   '<button class="pbtn" data-preset="colon:ornek">Örnek rapor: 3 polip + divertikül</button>'+
+   '<button class="pbtn" data-preset="colon:emr">LST 25 mm – piecemeal EMR</button>'+
+   '<button class="pbtn" data-preset="colon:uc">Ülseratif kolit aktivite</button>'+
+   '<button class="pbtn" data-preset="colon:crohn">Crohn – postop Rutgeerts</button>'+
+   '<button class="pbtn ghost" data-reset="colon">Formu temizle</button></div>','purple')+
+ card('Endikasyon', G('k_end',K_END)+R(T('k_end_txt','Ek endikasyon / klinik not')))+
+ card('Barsak hazırlığı – Boston (BBPS)', R(S('k_prep','Hazırlık rejimi',['PEG 4 L – bölünmüş doz','PEG 2 L + askorbat – bölünmüş doz','Sodyum pikosülfat / Mg sitrat – bölünmüş doz','Oral sülfat solüsyonu – bölünmüş doz','Aynı gün rejimi','Diğer']))+
+   R(S('k_b1','Sağ kolon',BB,3),S('k_b2','Transvers kolon',BB,3),S('k_b3','Sol kolon (rektum dahil)',BB,3))+'<div class="score" id="bbps-out"></div>','green')+
+ card('İşlem tekniği ve kalite', R(S('k_reach','Ulaşılan en proksimal nokta',['Terminal ileum','Çekum','Çıkan kolon','Transvers kolon','İnen kolon','Sigmoid kolon','Rektum']),N('k_ti','Terminal ileum entübasyonu (cm)'))+
+   '<div id="k_incw" class="row hidden">'+S('k_inc','Tamamlanamama nedeni',['Yetersiz barsak hazırlığı','Hasta toleransı','Darlık / tıkayıcı kitle','Angülasyon / looping','Diğer'])+'</div>'+
+   H3('Çekum entübasyonu kanıtı')+G('k_land',['Apendiks orifisi','İleoçekal valv','Terminal ileum','Çekum fotoğrafla belgelendi'])+
+   R(N('k_tcec','Çekuma ulaşma süresi (dk)'),N('k_twd','Geri çekilme süresi (dk, polipektomi hariç)'),N('k_ttot','Toplam süre (dk)'),
+     S('k_glou','Hasta konforu (Gloucester)',[['','—'],['1','1 – Konforlu'],['2','2 – Minimal'],['3','3 – Hafif'],['4','4 – Orta'],['5','5 – Şiddetli']]))+
+   H3('Görüntüleme / teknik')+G('k_img',['HD beyaz ışık','NBI / BLI / LCI','Kromoendoskopi (indigo karmin)','Distal ataşman (cap / Endocuff)','Su değişimi (water exchange)'])+
+   '<div>'+C('k_retro','Rektumda retrofleksiyon yapıldı',true)+C('k_posch','Pozisyon değişikliği uygulandı')+'</div>','green')+
+ card('Polip / lezyon tablosu <small>(her satır bir lezyon; kap numaraları otomatik)</small>','<div class="presets">'+
+   '<button class="pbtn alt" data-addpol="dim">+ ≤5 mm adenom (soğuk snare)</button>'+
+   '<button class="pbtn alt" data-addpol="small">+ 6–9 mm adenom (soğuk snare)</button>'+
+   '<button class="pbtn alt" data-addpol="hp">+ Rektal hiperplastik ≤5 mm</button>'+
+   '<button class="pbtn alt" data-addpol="ssl">+ SSL şüphesi 12 mm</button>'+
+   '<button class="pbtn alt" data-addpol="ped">+ Pediküllü 15 mm (sıcak snare + klip)</button>'+
+   '<button class="pbtn alt" data-addpol="lst">+ LST ≥20 mm (EMR)</button>'+
+   '<button class="pbtn alt" data-addpol="mass">+ Kitle (biyopsi + tatuaj)</button>'+
+   '<button class="pbtn ghost" data-addpol="bos">+ Boş satır</button></div>'+
+   '<div class="tbl"><table><thead><tr><th>Lokalizasyon</th><th>Anal kenar (cm)</th><th>Boyut (mm)</th><th>Paris</th><th>Optik tanı</th><th>Yöntem</th><th>En bloc</th><th>Geri alındı</th><th>Ek işlem</th><th></th></tr></thead><tbody id="col-pol"></tbody></table></div>','orange')+
+ card('Diğer bulgular', R(S('k_div','Divertikülozis',['Yok','Hafif','Orta','Yoğun']),S('k_hem','İç hemoroid (retrofleksiyon)',['Yok','Küçük','Orta','Büyük']))+
+   H3('Divertikül yerleşimi')+G('k_divloc',['Sigmoid kolon','İnen kolon','Transvers kolon','Sağ kolon'])+
+   H3('Diğer')+G('k_oth',K_OTH)+R(T('k_oth_txt','Diğer bulgu açıklaması')))+
+ card('İnflamatuvar barsak hastalığı', R(S('k_ibd','İBH değerlendirmesi',['Yok','Ülseratif kolit','Crohn hastalığı']))+
+   '<div id="k_uc" class="hidden">'+R(S('k_mayo','Endoskopik Mayo skoru',[['','—'],['0','0 – Normal / inaktif'],['1','1 – Hafif: eritem, vasküler patern azalması, hafif frajilite'],['2','2 – Orta: belirgin eritem, vasküler patern kaybı, frajilite, erozyon'],['3','3 – Ağır: spontan kanama, ülserasyon']]),
+     S('k_ext','Makroskopik tutulum (Montreal)',['—','E1 – Proktit','E2 – Sol kolon (splenik fleksura distali)','E3 – Yaygın (splenik fleksura proksimali)']))+
+     H3('UCEIS (en ağır tutulan bölgeye göre)')+R(S('k_u1','Vasküler patern',[[0,'0 – Normal'],[1,'1 – Yamalı silinme'],[2,'2 – Tamamen silinmiş']]),S('k_u2','Kanama',[[0,'0 – Yok'],[1,'1 – Mukozal'],[2,'2 – Lümende hafif'],[3,'3 – Lümende orta/şiddetli']]),S('k_u3','Erozyon / ülser',[[0,'0 – Yok'],[1,'1 – Erozyonlar'],[2,'2 – Yüzeysel ülser'],[3,'3 – Derin ülser']]))+
+     '<div class="score" id="uc-out"></div></div>'+
+   '<div id="k_cd" class="hidden">'+H3('SES-CD')+sesHTML+'<div class="score" id="ses-out"></div>'+
+     R(S('k_rut','Postoperatif Rutgeerts (modifiye)',['Uygulanamaz (rezeksiyon yok)','i0 – Lezyon yok','i1 – ≤5 aftöz lezyon','i2a – Anastomoza sınırlı lezyonlar','i2b – Neoterminal ileumda >5 aftöz lezyon','i3 – Diffüz aftöz ileit','i4 – Diffüz inflamasyon + büyük ülser / nodül / darlık']))+'</div>','purple')+
+ card('Biyopsi, komplikasyon ve öneriler', H3('Biyopsiler')+G('k_bx',K_BX)+
+   R(S('k_comp','Komplikasyon',['Yok','İntraprosedürel kanama – endoskopik kontrol sağlandı','Perforasyon – endoskopik klip ile kapatıldı','Perforasyon – cerrahi konsültasyon','Geçici desatürasyon','Vazovagal reaksiyon','Diğer']),T('k_comp_txt','Komplikasyon açıklaması'))+
+   H3('Öneriler <small>(izlem aralığı otomatik eklenir)</small>')+G('k_rec',K_REC)+R(T('k_rec_txt','Ek öneri')),'red');
+
+function polRow(o){ o=o||{}; const tr=document.createElement('tr');
+  tr.innerHTML='<td><select data-f="l">'+opt(SEGS,o.l||'Sigmoid kolon')+'</select></td><td><input data-f="d" type="number" min="0" value="'+(o.d??'')+'" style="width:64px"></td>'+
+   '<td><input data-f="s" type="number" min="0" value="'+(o.s??'')+'" style="width:64px"></td><td><select data-f="p">'+opt(PARIS,o.p||'0-Is')+'</select></td>'+
+   '<td><select data-f="o">'+opt(OPTDX,o.o)+'</select></td><td><select data-f="m">'+opt(METH,o.m)+'</select></td>'+
+   '<td><select data-f="e">'+opt(['Evet','Hayır'],o.e)+'</select></td><td><select data-f="r">'+opt(['Evet','Hayır'],o.r)+'</select></td>'+
+   '<td><select data-f="x">'+opt(EXTRA,o.x)+'</select></td><td><button class="del" title="Sil">✕</button></td>';
+  $('col-pol').appendChild(tr); }
+const POL_Q={ dim:{l:'Çıkan kolon',s:4,p:'0-IIa',o:'NICE 2 (adenom)',m:'Soğuk snare'}, small:{l:'Transvers kolon',s:7,p:'0-Is',o:'NICE 2 (adenom)',m:'Soğuk snare'},
+  hp:{l:'Rektum',s:3,p:'0-IIa',o:'NICE 1 (hiperplastik)',m:'Soğuk snare'}, ssl:{l:'Çıkan kolon',s:12,p:'0-IIa',o:'SSL şüphesi (WASP)',m:'Soğuk snare – piecemeal',e:'Hayır'},
+  ped:{l:'Sigmoid kolon',s:15,p:'0-Ip',o:'NICE 2 (adenom)',m:'Sıcak snare',x:'Profilaktik klip'},
+  lst:{l:'Çıkan kolon',s:25,p:'LST-G nodüler mikst',o:'JNET 2A',m:'EMR – piecemeal',e:'Hayır',x:'Kenar ablasyonu (STSC / APC)'},
+  mass:{l:'Sigmoid kolon',d:28,s:40,p:'Kitle (ülsere / vejetan)',o:'NICE 3 (derin SM invazyon)',m:'Biyopsi alındı (rezeksiyon yapılmadı)',e:'Hayır',x:'Tatuaj (lezyonun 2–3 cm distaline)'}, bos:{} };
+
+/* ===================== ERCP ===================== */
+const R_END=['Koledokolitiazis','Akut kolanjit','Biliyer pankreatit (kolanjit / süregen obstrüksiyon)','Malign distal biliyer darlık','Hiler darlık','Benign biliyer darlık','Biliyer kaçak','Stent değişimi / çıkarılması','Kronik pankreatit – PD taşı / darlık','PSC'];
+const R_PAP=['Doğal görünüm','Ödemli / inflame papilla','Bombe papilla (impakte taş)','Papilla tümörü şüphesi','Pürülan safra akımı','Safra akımı izlenmedi','Papillada pıhtı / kanama'];
+const R_PLOC=['İnen duodenum (D2) – olağan yerleşim','D1–D2 bileşkesi (yüksek yerleşim)','D2 distali / D3 (aşağı yerleşim)','Bulbusta (ektopik)','Divertikül nedeniyle güç görüldü','Postoperatif anatomi (Billroth II / Roux-en-Y)','Papilla bulunamadı'];
+const R_DIV=['Yok','Tip 1 – Papilla divertikül içinde','Tip 2 – Papilla divertikül kenarında','Tip 3 – Papilla divertikül dışında, komşuluğunda'];
+const R_EST=['Yok – native papilla','EST’li görünüm – küçük / parsiyel','EST’li görünüm – geniş, açık orifis','EST’li görünüm – restenoz / daralmış orifis','Önceki balon dilatasyonu (EPBD / EPLBD)','Önceki prekat / fistülotomi'];
+const R_HAR=['Değerlendirilmedi','Tip 1 – Düzenli','Tip 2 – Küçük, düz (≤3 mm)','Tip 3 – Sarkık / çıkıntılı','Tip 4 – Kıvrımlı / çizgili (creased-ridged)'];
+const R_TECH=['Kılavuz tel destekli kanülasyon (sfinkterotom)','Kontrast destekli kanülasyon','Çift kılavuz tel tekniği','Transpankreatik sfinkterotomi','Prekat – needle-knife fistülotomi','Prekat – needle-knife papillotomi','Rendezvous (EUS / perkütan)'];
+const R_PROC=['Balon ile taş ekstraksiyonu','Basket ile taş ekstraksiyonu','Mekanik litotripsi','Kolanjiyoskopi + EHL / lazer litotripsi','Fırça sitolojisi','Endobiliyer biyopsi','Darlık balon dilatasyonu','Nazobiliyer drenaj','Mevcut stent çıkarıldı'];
+const R_PEP=['Kadın cinsiyet','Önceki PEP öyküsü','Genç yaş','Normal serum bilirubin','SOD şüphesi','Pankreas kanalı kontrast enjeksiyonu','Pankreatik sfinkterotomi','İntakt sfinkterde balon dilatasyonu'];
+const R_REC=['4–6 saat oral alım yok; ağrı yoksa sıvı gıdaya başlanabilir','Karın ağrısı olursa serum amilaz / lipaz','24. saatte hemogram ve KCFT kontrolü','Aynı yatışta kolesistektomi (genel cerrahi konsültasyonu)','Plastik stent değişimi / çıkarılması: 3 ay içinde','Sitoloji / patoloji sonucu ile kontrol','Antibiyotik tedavisine devam (kolanjit)','Multidisipliner onkoloji konseyi'];
+
+$('pane-ercp').innerHTML =
+ card('Hızlı şablonlar <small>(tek tık tüm formu doldurur)</small>','<div class="presets">'+
+   '<button class="pbtn" data-preset="ercp:tas">Koledokolitiazis – ES + balon, tam temizlik</button>'+
+   '<button class="pbtn" data-preset="ercp:kolanjit">Akut kolanjit – plastik stent drenajı</button>'+
+   '<button class="pbtn" data-preset="ercp:malign">Malign distal darlık – fırça + FCSEMS</button>'+
+   '<button class="pbtn ghost" data-reset="ercp">Formu temizle</button></div>','purple')+
+ card('Endikasyon ve hazırlık', G('r_end',R_END)+R(T('r_end_txt','Ek endikasyon / klinik not'),S('r_tokyo','Akut kolanjit şiddeti (Tokyo 2018)',['—','Grade I (hafif)','Grade II (orta)','Grade III (ağır)']))+
+   H3('Ön görüntüleme')+G('r_img',['USG','BT','MRCP','EUS'])+
+   R(S('r_pos','Hasta pozisyonu',['Prone','Sol lateral','Supin']),T('r_scope','Endoskop','','Terapötik duodenoskop'))+
+   H3('PEP ve enfeksiyon profilaksisi')+R(S('r_nsaid','Rektal NSAİİ',['Rektal indometazin 100 mg (işlem öncesi)','Rektal diklofenak 100 mg (işlem öncesi)','Verilmedi – kontrendikasyon','Verilmedi']),
+     S('r_lr','Hidrasyon',['Standart','Agresif hidrasyon (Laktatlı Ringer)']),S('r_ab','Antibiyotik',['Yok','Profilaktik antibiyotik','Devam eden antibiyotik tedavisi (kolanjit)']))+
+   H3('PEP risk faktörleri')+G('r_pep',R_PEP))+
+ card('Papilla ve kanülasyon', R(S('r_ploc','Papillanın görüldüğü yer',R_PLOC),S('r_scopepos','Duodenoskop pozisyonu',['Kısa (short) pozisyon','Uzun (long) pozisyon']))+
+   R(S('r_div','Periampuller divertikül (Boix)',R_DIV),N('r_divsz','Divertikül çapı (mm)'))+
+   R(S('r_est','Önceki sfinkterotomi (EST)',R_EST),S('r_haral','Papilla morfolojisi (Haraldsson)',R_HAR),S('r_minor','Minör papilla',['Değerlendirilmedi','Görüldü – doğal','Kanüle edildi']))+
+   C('r_stentin','Papilladan çıkan mevcut stent var')+
+   R(S('r_tgt','Hedef kanal',['Safra yolu','Pankreas kanalı']),S('r_deep','Derin kanülasyon',['Başarılı','Başarısız']))+
+   H3('Papilla görünümü')+G('r_pap',R_PAP)+H3('Kanülasyon tekniği')+G('r_tech',R_TECH)+
+   R(N('r_n','Papilla temas (deneme) sayısı'),N('r_t','Kanülasyon süresi (dk)'),N('r_p','İstemsiz PD kanülasyonu / opasifikasyonu'))+
+   '<div class="score" id="cann-out"></div>','green')+
+ card('Kolanjiyografi / pankreatografi', R(N('r_cbd','KBC çapı (mm)'),S('r_ihd','İntrahepatik dilatasyon',['Yok','Hafif','Belirgin']),S('r_gb','Safra kesesi',['Yerinde – opasifiye oldu','Yerinde – opasifiye olmadı','Kolesistektomili']))+
+   R(S('r_stone','Taş (dolum defekti)',['Yok','Tek','2–5','>5 / çok sayıda']),N('r_ssize','En büyük taş (mm)'))+
+   R(S('r_stric','Darlık',['Yok','Distal KBC','Orta KBC','Hiler – Bismuth I','Hiler – Bismuth II','Hiler – Bismuth IIIa','Hiler – Bismuth IIIb','Hiler – Bismuth IV','İntrahepatik']),N('r_slen','Darlık uzunluğu (mm)'),
+     S('r_leak','Safra kaçağı',['Yok','Sistik kanal güdüğü','Luschka kanalı','KBC','Diğer']))+
+   R(S('r_pg','Pankreatografi',['Yapılmadı','Normal','Anormal (açıklamaya bakınız)']),T('r_chol_txt','Ek kolanjiyografi notu')),'green')+
+ card('Terapötik girişimler', R(S('r_es','Biliyer sfinkterotomi',['Yok','Küçük','Orta','Büyük (tam)','Mevcut sfinkterotomi genişletildi']),S('r_escur','Kesi akımı',['—','Endocut (karma akım)','Saf kesi akımı']),N('r_eplbd','EPLBD balon çapı (mm)'),N('r_sext','Çıkarılan taş sayısı'))+
+   G('r_proc',R_PROC)+
+   H3('Plastik biliyer stent')+R(N('r_ps_n','Adet'),N('r_ps_fr','Çap (Fr)'),N('r_ps_cm','Uzunluk (cm)'),S('r_ps_t','Tip',['Düz','Çift pigtail']))+
+   H3('Metal biliyer stent (SEMS)')+R(S('r_sems','Tip',['Yok','Tam kaplı (FCSEMS)','Parsiyel kaplı','Kaplı olmayan']),N('r_sems_d','Çap (mm)'),N('r_sems_l','Uzunluk (cm)'))+
+   H3('Pankreatik stent')+R(S('r_pd','PD stent',['Yok','5 Fr profilaktik','Terapötik']),N('r_pd_cm','Uzunluk (cm)'))+
+   H3('Sonuç durumu')+R(S('r_clear','Taş temizliği',['Uygulanamaz','Tam temizlik (balon oklüzyon kolanjiyogramı ile doğrulandı)','İnkomplet temizlik – stent ile drenaj','Taş çıkarılamadı']),S('r_drain','Biliyer drenaj',['Uygulanamaz','Kontrast drenajı yeterli','Drenaj yetersiz']))+
+   R(N('r_fl_t','Floroskopi süresi (dk)'),T('r_fl_d','Floroskopi dozu','ör. 45 mGy / 8 Gy·cm²'),S('r_asge','ASGE karmaşıklık derecesi',[['—','—'],['1','1 – Temel (kanülasyon, stent değişimi)'],['2','2 – Taş <10 mm, kaçak, ekstrahepatik darlık, profilaktik PD stent'],['3','3 – Taş >10 mm, hiler tümör, intraduktal görüntüleme, minör papilla'],['4','4 – İntrahepatik taş, ampullektomi, cerrahi anatomi değişikliği']])))+
+ card('Komplikasyon ve öneriler', R(S('r_comp','İntraprosedürel komplikasyon',['Yok','Post-sfinkterotomi kanama – endoskopik kontrol sağlandı','Perforasyon (Stapfer tipini açıklamada belirtiniz)','Geçici desatürasyon','Diğer']),T('r_comp_txt','Komplikasyon açıklaması'))+
+   H3('Öneriler')+G('r_rec',R_REC)+R(T('r_rec_txt','Ek öneri')),'red');
+
+
+/* ===================== EUS ===================== */
+const EUS_END=['Pankreas solid lezyonu','Pankreas kistik lezyonu','Koledokolitiazis şüphesi (orta risk)','Subepitelyal lezyon','Özofagus / mide kanseri evrelemesi','Rektum kanseri evrelemesi','Kronik pankreatit değerlendirmesi','İdiyopatik akut pankreatit','Ampuller lezyon','Mediastinal / abdominal lenf nodu','Safra kesesi lezyonu','Terapötik (drenaj / nöroliz)'];
+const PANC=['Unsinat proses','Baş','Boyun','Gövde','Kuyruk'];
+const EUS_LOC=['Pankreas – unsinat proses','Pankreas – baş','Pankreas – boyun','Pankreas – gövde','Pankreas – kuyruk','Koledok','Ampulla','Safra kesesi','Karaciğer sol lob','Özofagus','Mide','Duodenum','Rektum','Lenf nodu – mediastinal','Lenf nodu – çöliak / peripankreatik','Lenf nodu – perirektal','Sol adrenal','Diğer'];
+const ECHO=['Hipoekoik','İzoekoik','Hiperekoik','Anekoik (kistik)','Mikst (solid-kistik)'];
+const LAYER=['—','1. katman (yüzeyel mukoza)','2. katman (derin mukoza / muskularis mukoza)','3. katman (submukoza)','4. katman (muskularis propria)','5. katman (seroza / adventisya)','Ekstramural bası'];
+const SAMP=['—','FNB','FNA','Kist sıvısı aspirasyonu'];
+const GAUGE=['—','19G','20G','22G','25G'];
+const ROS=['Gölgeli hiperekoik odaklar (kalsifikasyon)','Lobülarite – bal peteği','Lobülarite – bal peteği olmayan','Gölgesiz hiperekoik odaklar','Kistler','Stranding','MPD kalkülü','Düzensiz MPD konturu','Dilate yan dallar','Hiperekoik MPD duvarı'];
+const EUS_REC=['Sitoloji / patoloji sonucu ile kontrol','Multidisipliner onkoloji konseyi','ERCP ile koledok taşı tedavisi','Kistik lezyon izlemi (kılavuza göre)','Kolesistektomi değerlendirmesi','2 saat oral alım yok, ardından sıvı gıda','Ağrı, ateş veya kanama durumunda başvuru'];
+
+$('pane-eus').innerHTML =
+ card('Hızlı şablonlar <small>(tek tık tüm formu doldurur)</small>','<div class="presets">'+
+   '<button class="pbtn" data-preset="eus:normal">Normal pankreatobiliyer EUS</button>'+
+   '<button class="pbtn" data-preset="eus:mass">Pankreas başı kitlesi + FNB</button>'+
+   '<button class="pbtn" data-preset="eus:cbd">Koledok taşı (ERCP öncesi)</button>'+
+   '<button class="pbtn" data-preset="eus:sel">Mide subepitelyal lezyonu</button>'+
+   '<button class="pbtn ghost" data-reset="eus">Formu temizle</button></div>','purple')+
+ card('Endikasyon ve teknik', G('u_end',EUS_END)+R(T('u_end_txt','Ek endikasyon / klinik not'))+
+   R(S('u_scope','Ekoendoskop',['Lineer','Radyal','Lineer + radyal','Mini-prob']),S('u_route','Yaklaşım',['Üst GİS','Alt GİS (transrektal)']))+
+   '<div>'+C('u_pinc','Pankreas incelendi',true)+C('u_binc','Safra yolları / ampulla incelendi',true)+'</div>'+H3('Ek modaliteler')+G('u_adj',['Doppler','Kontrastlı EUS (CH-EUS)','Elastografi'])+
+   H3('İnceleme istasyonları')+G('u_st',['Transözofageal (mediastinum)','Transgastrik','Duodenal bulbus','İnen duodenum (D2)','Transrektal']))+
+ card('Pankreas', R(S('u_mpdq','Ana pankreas kanalı (MPD)',['Normal','Dilate','Düzensiz kontur','İçinde taş']),N('u_mpd','MPD çapı (mm)'))+
+   H3('Parankim bulguları (Rosemont)')+G('u_ros',ROS)+R(S('u_rosc','Rosemont sınıflaması',['Değerlendirilmedi','Normal','Belirsiz (indeterminate)','Kronik pankreatit düşündürücü','Kronik pankreatit ile uyumlu']))+
+   '<p class="hint">Bölgelerde lezyon yoksa rapora her bölge ayrı ayrı “doğal” olarak yazılır; lezyonları aşağıdaki tabloya ekleyin.</p>','green')+
+ card('Safra yolları, çevre yapılar ve evreleme', R(N('u_cbd','Koledok çapı (mm)'),S('u_cbdf','Koledok içeriği',['Taş / sludge yok','Taş','Sludge','Mikrolitiazis']),S('u_gb','Safra kesesi',['Değerlendirilmedi','Normal','Taş','Sludge','Polip','Duvar kalınlaşması','Kolesistektomili']))+
+   R(S('u_amp','Ampulla',['Normal','Lezyon (tabloya bakınız)','Değerlendirilmedi']),S('u_liv','Karaciğer (görülebilen kısım)',['Normal','Lezyon (tabloya bakınız)','Değerlendirilmedi']),S('u_ln','Lenf nodları',['Patolojik görünümlü lenf nodu yok','Patolojik görünümlü lenf nodu var (tabloya bakınız)','Değerlendirilmedi']))+
+   H3('Vasküler ilişki')+G('u_vas',['Vasküler tutulum yok','Portal ven / SMV teması ≤180°','Portal ven / SMV teması >180°','SMA teması','Çöliak trunkus teması','Hepatik arter teması'])+
+   '<div>'+C('u_asc','Asit')+'</div>'+H3('Luminal tümör evrelemesi')+R(T('u_T','uT','ör. uT3'),T('u_N','uN','ör. uN1')),'green')+
+ card('Lezyon tablosu <small>(boyut, ekojenite, köken katman, örnekleme)</small>','<div class="presets">'+
+   '<button class="pbtn alt" data-addeus="mass">+ Pankreas solid kitlesi</button>'+
+   '<button class="pbtn alt" data-addeus="cyst">+ Pankreas kistik lezyonu</button>'+
+   '<button class="pbtn alt" data-addeus="sel">+ Subepitelyal lezyon</button>'+
+   '<button class="pbtn alt" data-addeus="ln">+ Lenf nodu</button>'+
+   '<button class="pbtn ghost" data-addeus="bos">+ Boş satır</button></div>'+
+   '<div class="tbl"><table><thead><tr><th>Lokalizasyon</th><th>Boyut 1 (mm)</th><th>Boyut 2 (mm)</th><th>Ekojenite</th><th>Köken katman</th><th>Özellikler</th><th>Örnekleme</th><th>İğne</th><th>Pasaj</th><th></th></tr></thead><tbody id="eus-les"></tbody></table></div>'+
+   R(S('u_rose','Yerinde değerlendirme',['Yok','ROSE','MOSE (makroskopik)']))+H3('Kist sıvısı / ek incelemeler')+G('u_fluid',['Kist sıvısı CEA','Kist sıvısı amilaz / lipaz','Kist sıvısı glukoz','Sitoloji','Hücre bloğu','Akım sitometri'])+
+   '<div>'+C('u_abx','Antibiyotik profilaksisi verildi')+'</div>','orange')+
+ card('Terapötik girişimler', G('u_ther',['LAMS ile pankreatik sıvı koleksiyonu drenajı','Plastik stent ile koleksiyon drenajı','EUS-koledokoduodenostomi (LAMS)','EUS-hepatikogastrostomi','EUS-gastroenterostomi','Çöliak pleksus nörolizi / bloğu','EUS-rendezvous'])+R(T('u_ther_txt','Terapötik girişim ayrıntısı')))+
+ card('Komplikasyon ve öneriler', R(S('u_comp','Komplikasyon',['Yok','Örnekleme sonrası minör kanama – kendiliğinden durdu','Kanama – endoskopik müdahale','Perforasyon','Akut pankreatit','Desatürasyon','Diğer']),T('u_comp_txt','Komplikasyon açıklaması'))+
+   H3('Öneriler')+G('u_rec',EUS_REC)+R(T('u_rec_txt','Ek öneri')),'red');
+
+function eusRow(o){ o=o||{}; const tr=document.createElement('tr');
+  tr.innerHTML='<td><select data-f="l">'+opt(EUS_LOC,o.l||'Pankreas – baş')+'</select></td><td><input data-f="a" type="number" min="0" value="'+(o.a??'')+'" style="width:60px"></td><td><input data-f="b" type="number" min="0" value="'+(o.b??'')+'" style="width:60px"></td>'+
+   '<td><select data-f="e">'+opt(ECHO,o.e)+'</select></td><td><select data-f="k">'+opt(LAYER,o.k)+'</select></td><td><input data-f="f" type="text" value="'+esc(o.f||'')+'" style="min-width:170px"></td>'+
+   '<td><select data-f="x">'+opt(SAMP,o.x)+'</select></td><td><select data-f="g">'+opt(GAUGE,o.g)+'</select></td><td><input data-f="n" type="number" min="0" value="'+(o.n??'')+'" style="width:50px"></td><td><button class="del" title="Sil">✕</button></td>';
+  $('eus-les').appendChild(tr); }
+const EUS_Q={ mass:{l:'Pankreas – baş',a:28,b:24,e:'Hipoekoik',f:'düzensiz sınırlı, solid; MPD ve koledokta upstream dilatasyon',x:'FNB',g:'22G',n:3},
+  cyst:{l:'Pankreas – gövde',a:18,b:14,e:'Anekoik (kistik)',f:'unilokuler, mural nodül yok, MPD ile ilişki izlenmedi',x:'—'},
+  sel:{l:'Mide',a:22,b:18,e:'Hipoekoik',k:'4. katman (muskularis propria)',f:'homojen, düzgün sınırlı; korpus büyük kurvatur',x:'FNB',g:'22G',n:2},
+  ln:{l:'Lenf nodu – çöliak / peripankreatik',a:14,b:10,e:'Hipoekoik',f:'yuvarlak, keskin sınırlı',x:'—'}, bos:{} };
+
+/* ===================== PEG ===================== */
+const PEG_END=['Nörolojik disfaji (inme)','Nörodejeneratif hastalık (ALS, Parkinson vb.)','İleri demans','Baş-boyun kanseri','Özofagus kanseri / obstrüksiyon','Uzamış bilinç bozukluğu','Kronik malnütrisyon (yetersiz oral alım)','Dekompresyon (malign obstrüksiyon)'];
+const PEG_REC=['3–4 saat sonra enteral beslenmeye başlanabilir (erken beslenme güvenli)','İlk 24 saat stoma bölgesi kanama / sızıntı açısından izlem','İlk hafta günlük stoma pansumanı','Dış tampon ciltten 0.5–1 cm gevşek tutulmalı; aşırı sıkı tespit edilmemeli','Stoma iyileştikten sonra tüp düzenli olarak içeri itilip döndürülmeli (gömülü tampon önlemi)','Her beslenme ve ilaç sonrası 30 mL su ile yıkama','Diyetisyen / nütrisyon ekibi konsültasyonu'];
+$('pane-peg').innerHTML =
+ card('Hızlı şablonlar <small>(tek tık tüm formu doldurur)</small>','<div class="presets">'+
+   '<button class="pbtn" data-preset="peg:pull">Standart pull PEG (20 Fr)</button>'+
+   '<button class="pbtn" data-preset="peg:intro">İntrodüser PEG + gastropeksi (baş-boyun kanseri)</button>'+
+   '<button class="pbtn ghost" data-reset="peg">Formu temizle</button></div>','purple')+
+ card('Endikasyon ve ön değerlendirme', G('p_end',PEG_END)+R(T('p_end_txt','Ek endikasyon / klinik not'))+
+   '<div>'+C('p_4w','Enteral beslenme ihtiyacı >4 hafta öngörülüyor')+C('p_eth','Hasta / yasal temsilci ile beslenme hedefleri ve etik değerlendirme yapıldı')+'</div>'+
+   R(T('p_lab','INR / trombosit','ör. INR 1.1; PLT 210.000/µL'),S('p_ab','Antibiyotik profilaksisi',['Sefazolin 2 g IV (işlemden 30 dk önce)','Ampisilin-sulbaktam IV (işlem öncesi)','Mevcut antibiyotik tedavisi','Verilmedi'])))+
+ card('Tanısal EGD', R(S('p_egd','Ön EGD',['Belirgin patoloji saptanmadı','Bulgu var (açıklayınız)']),T('p_egd_txt','EGD bulgusu')))+
+ card('İşlem tekniği', R(S('p_meth','Yöntem',['Pull (Ponsky-Gauderer)','Push (Sacks-Vine)','İntrodüser (Russell, Seldinger)']),S('p_gpx','Gastropeksi',['Yok','T-fastener ×2','T-fastener ×3','T-fastener ×4']),S('p_site','Cilt giriş yeri',['Sol üst kadran','Epigastrium']))+
+   H3('Güvenli trakt doğrulaması')+'<div>'+C('p_trans','Transillüminasyon',true)+C('p_finger','Parmak indentasyonu',true)+C('p_safe','Güvenli trakt testi (iğne aspirasyonunda hava gelişi ile eş zamanlı endoskopik görüntü)',true)+'</div>'+
+   R(S('p_gloc','Mide içi yerleşim',['Korpus ön duvar','Korpus–antrum bileşkesi ön duvar','Antrum ön duvar']),T('p_la','Lokal anestezi','','Lidokain %2, 10 mL'))+
+   R(N('p_fr','Tüp çapı (Fr)'),T('p_brand','Tüp marka / model'),N('p_mark','Ciltteki tüp işareti (cm)'))+
+   '<div>'+C('p_bump','İç tamponun mide duvarına gerilimsiz oturduğu endoskopik olarak doğrulandı',true)+C('p_pegj','Jejunal uzantı (PEG-J) yerleştirildi')+'</div>','green')+
+ card('Komplikasyon ve öneriler', R(S('p_comp','Komplikasyon',['Yok','Minör stoma kanaması – kompresyonla durdu','Kanama – endoskopik müdahale gerekti','Desatürasyon / aspirasyon','Diğer']),T('p_comp_txt','Komplikasyon açıklaması'))+
+   H3('Öneriler')+G('p_rec',PEG_REC)+R(T('p_rec_txt','Ek öneri')),'red');
+
+/* ===================== ŞABLONLAR ===================== */
+const PRESETS={
+ eus:{
+  normal:{c:{u_end:['İdiyopatik akut pankreatit'],u_adj:['Doppler'],u_st:['Transgastrik','Duodenal bulbus','İnen duodenum (D2)'],u_rec:['2 saat oral alım yok, ardından sıvı gıda']},v:{u_mpd:2,u_rosc:'Normal',u_cbd:5,u_gb:'Normal'}},
+  mass:{c:{u_end:['Pankreas solid lezyonu'],u_adj:['Doppler'],u_st:['Transgastrik','Duodenal bulbus','İnen duodenum (D2)'],u_vas:['Portal ven / SMV teması ≤180°'],u_fluid:[],u_rec:['Sitoloji / patoloji sonucu ile kontrol','Multidisipliner onkoloji konseyi','2 saat oral alım yok, ardından sıvı gıda']},
+     v:{u_mpdq:'Dilate',u_mpd:5,u_cbd:12,u_gb:'Normal',u_ln:'Patolojik görünümlü lenf nodu yok',u_rose:'MOSE (makroskopik)'},eus:[EUS_Q.mass]},
+  cbd:{c:{u_end:['Koledokolitiazis şüphesi (orta risk)'],u_adj:['Doppler'],u_st:['Transgastrik','Duodenal bulbus','İnen duodenum (D2)'],u_rec:['ERCP ile koledok taşı tedavisi','Kolesistektomi değerlendirmesi']},v:{u_mpd:2,u_cbd:9,u_cbdf:'Taş',u_gb:'Taş'}},
+  sel:{c:{u_end:['Subepitelyal lezyon'],u_adj:['Doppler'],u_st:['Transgastrik'],u_rec:['Sitoloji / patoloji sonucu ile kontrol']},v:{u_pinc:false,u_binc:false,u_liv:'Normal',u_rose:'MOSE (makroskopik)'},eus:[EUS_Q.sel]}
+ },
+ peg:{
+  pull:{c:{p_end:['Nörolojik disfaji (inme)'],p_rec:['3–4 saat sonra enteral beslenmeye başlanabilir (erken beslenme güvenli)','İlk 24 saat stoma bölgesi kanama / sızıntı açısından izlem','İlk hafta günlük stoma pansumanı','Dış tampon ciltten 0.5–1 cm gevşek tutulmalı; aşırı sıkı tespit edilmemeli','Stoma iyileştikten sonra tüp düzenli olarak içeri itilip döndürülmeli (gömülü tampon önlemi)','Her beslenme ve ilaç sonrası 30 mL su ile yıkama']},
+     v:{p_4w:true,p_eth:true,p_fr:20,p_mark:3}},
+  intro:{c:{p_end:['Baş-boyun kanseri'],p_rec:['3–4 saat sonra enteral beslenmeye başlanabilir (erken beslenme güvenli)','İlk 24 saat stoma bölgesi kanama / sızıntı açısından izlem','İlk hafta günlük stoma pansumanı','Her beslenme ve ilaç sonrası 30 mL su ile yıkama','Diyetisyen / nütrisyon ekibi konsültasyonu']},
+     v:{p_4w:true,p_eth:true,p_meth:'İntrodüser (Russell, Seldinger)',p_gpx:'T-fastener ×3',p_fr:15,p_mark:4,p_egd:'Bulgu var (açıklayınız)',p_egd_txt:'Hipofarenkste tümöre bağlı daralma; ince kalibreli endoskopla geçildi.'}}
+ },
+ egd:{
+  normal:{c:{e_end:['Dispepsi'],e_img:['HD beyaz ışık'],e_bx:['Güncellenmiş Sydney (5 biyopsi)'],e_rec:['Patoloji sonucu ile poliklinik kontrolü','H. pylori sonucuna göre eradikasyon']},v:{e_time:7,e_zcm:39,e_kim:'Atrofi yok',e_hp:'Histolojiye bırakıldı'}},
+  reflu:{c:{e_end:['Reflü semptomları'],e_img:['HD beyaz ışık','NBI / BLI / LCI'],e_rec:['PPI 8 hafta (standart doz)']},v:{e_la:'B',e_hh:3,e_hill:'III',e_zcm:37,e_time:8,e_kim:'Atrofi yok'}},
+  ulser:{c:{e_end:['Üst GİS kanama (hematemez / melena)'],e_img:['HD beyaz ışık'],e_bx:['HÜT (antrum + korpus)'],e_rec:['Yüksek doz PPI 72 saat (endoskopik hemostaz sonrası)','H. pylori sonucuna göre eradikasyon','NSAİİ kullanımından kaçınılmalı']},v:{e_hp:'Hızlı üreaz testi pozitif',e_time:12,e_zcm:39},les:[LES_Q.ulserIb]},
+  varis:{c:{e_end:['Varis taraması (siroz)'],e_mid:['Portal hipertansif gastropati (hafif)'],e_rec:['EVL programı: 2–4 hafta arayla eradikasyona kadar','Oral alım 2 saat sonra başlanabilir']},v:{e_var:'Büyük (≥5 mm)',e_rcs:true,e_evl:5,e_time:10,e_zcm:40}},
+  barrett:{c:{e_end:['Barrett sürveyansı'],e_img:['HD beyaz ışık','NBI / BLI / LCI','Asetik asit'],e_bx:['Barrett – Seattle protokolü'],e_rec:['Patoloji sonucu ile poliklinik kontrolü','PPI 8 hafta (standart doz)']},v:{e_scj:'Barrett şüphesi (≥1 cm)',e_c:2,e_m:4,e_zcm:35,e_hh:2,e_hill:'III',e_time:12}}
+ },
+ colon:{
+  normal:{c:{k_end:['Tarama (ortalama risk)'],k_land:['Apendiks orifisi','İleoçekal valv','Terminal ileum','Çekum fotoğrafla belgelendi'],k_img:['HD beyaz ışık'],k_rec:['Uyarı semptomları anlatıldı (rektal kanama, şiddetli karın ağrısı, ateş)']},v:{k_ti:10,k_tcec:7,k_twd:8,k_ttot:17,k_glou:'2'}},
+  ornek:{c:{k_end:['Tarama (ortalama risk)'],k_land:['Apendiks orifisi','İleoçekal valv','Terminal ileum','Çekum fotoğrafla belgelendi'],k_img:['HD beyaz ışık','NBI / BLI / LCI'],k_divloc:['Sigmoid kolon'],
+      k_rec:['Patoloji sonucu ile poliklinik kontrolü','Antitrombotik tedaviye kesintisiz devam','Uyarı semptomları anlatıldı (rektal kanama, şiddetli karın ağrısı, ateş)']},
+     v:{k_b3:2,k_ti:10,k_tcec:9,k_twd:9,k_ttot:24,k_glou:'2',k_div:'Hafif',k_hem:'Küçük'},
+     pol:[{l:'Çıkan kolon',s:8,p:'0-Is',o:'NICE 2 (adenom)',m:'Soğuk snare'},{l:'Transvers kolon',s:4,p:'0-IIa',o:'NICE 2 (adenom)',m:'Soğuk snare'},{l:'Rektum',d:8,s:3,p:'0-IIa',o:'NICE 1 (hiperplastik)',m:'Soğuk snare'}]},
+  emr:{c:{k_end:['FIT / GGK pozitifliği'],k_land:['Apendiks orifisi','İleoçekal valv','Çekum fotoğrafla belgelendi'],k_img:['HD beyaz ışık','NBI / BLI / LCI'],k_rec:['Patoloji sonucu ile poliklinik kontrolü','Polipektomi sonrası 24 saat ağır efordan kaçınma','Uyarı semptomları anlatıldı (rektal kanama, şiddetli karın ağrısı, ateş)']},
+     v:{k_reach:'Çekum',k_tcec:8,k_twd:10,k_ttot:45,k_glou:'2'},pol:[POL_Q.lst]},
+  uc:{c:{k_end:['İBH – aktivite değerlendirmesi'],k_land:['İleoçekal valv','Terminal ileum'],k_img:['HD beyaz ışık'],k_bx:['İBH segmental biyopsiler (her segmentten ≥2, ayrı kaplar)'],k_rec:['Patoloji sonucu ile poliklinik kontrolü','İBH tedavisinin yeniden değerlendirilmesi (treat-to-target)']},
+     v:{k_ibd:'Ülseratif kolit',k_mayo:'2',k_u1:1,k_u2:1,k_u3:1,k_ext:'E2 – Sol kolon (splenik fleksura distali)',k_ti:5,k_twd:8}},
+  crohn:{c:{k_end:['İBH – aktivite değerlendirmesi'],k_land:['Terminal ileum'],k_oth:[],k_bx:['Terminal ileum biyopsisi'],k_rec:['Patoloji sonucu ile poliklinik kontrolü','İBH tedavisinin yeniden değerlendirilmesi (treat-to-target)']},
+     v:{k_ibd:'Crohn hastalığı',k_rut:'i2b – Neoterminal ileumda >5 aftöz lezyon',k_ti:15,k_twd:8},ses:{0:[1,1,1,0]}}
+ },
+ ercp:{
+  tas:{c:{r_end:['Koledokolitiazis'],r_img:['USG','MRCP'],r_pap:['Doğal görünüm'],r_tech:['Kılavuz tel destekli kanülasyon (sfinkterotom)'],r_proc:['Balon ile taş ekstraksiyonu'],
+      r_rec:['4–6 saat oral alım yok; ağrı yoksa sıvı gıdaya başlanabilir','Karın ağrısı olursa serum amilaz / lipaz','Aynı yatışta kolesistektomi (genel cerrahi konsültasyonu)']},
+     v:{r_haral:'Tip 1 – Düzenli',r_n:2,r_t:2,r_p:0,r_cbd:11,r_sext:3,r_escur:'Endocut (karma akım)',r_ihd:'Hafif',r_stone:'2–5',r_ssize:9,r_es:'Orta',r_clear:'Tam temizlik (balon oklüzyon kolanjiyogramı ile doğrulandı)',r_drain:'Kontrast drenajı yeterli',r_fl_t:4,r_asge:'2'}},
+  kolanjit:{c:{r_end:['Akut kolanjit','Koledokolitiazis'],r_img:['USG','BT'],r_pap:['Pürülan safra akımı'],r_tech:['Kılavuz tel destekli kanülasyon (sfinkterotom)'],
+      r_rec:['Antibiyotik tedavisine devam (kolanjit)','Aynı yatışta kolesistektomi (genel cerrahi konsültasyonu)','24. saatte hemogram ve KCFT kontrolü','Plastik stent değişimi / çıkarılması: 3 ay içinde','Karın ağrısı olursa serum amilaz / lipaz']},
+     v:{r_div:'Tip 2 – Papilla divertikül kenarında',r_divsz:20,r_tokyo:'Grade II (orta)',r_ab:'Devam eden antibiyotik tedavisi (kolanjit)',r_n:3,r_t:4,r_p:0,r_cbd:14,r_ihd:'Belirgin',r_stone:'>5 / çok sayıda',r_ssize:14,r_es:'Küçük',r_ps_n:1,r_ps_fr:10,r_ps_cm:9,r_ps_t:'Çift pigtail',
+       r_clear:'İnkomplet temizlik – stent ile drenaj',r_drain:'Kontrast drenajı yeterli',r_fl_t:5,r_asge:'3'}},
+  malign:{c:{r_end:['Malign distal biliyer darlık'],r_img:['BT','MRCP','EUS'],r_pap:['Doğal görünüm'],r_tech:['Kılavuz tel destekli kanülasyon (sfinkterotom)'],r_proc:['Fırça sitolojisi'],
+      r_rec:['Sitoloji / patoloji sonucu ile kontrol','Multidisipliner onkoloji konseyi','24. saatte hemogram ve KCFT kontrolü','Karın ağrısı olursa serum amilaz / lipaz']},
+     v:{r_n:4,r_t:6,r_p:1,r_cbd:16,r_ihd:'Belirgin',r_stric:'Distal KBC',r_slen:25,r_es:'Yok',r_sems:'Tam kaplı (FCSEMS)',r_sems_d:10,r_sems_l:6,r_pd:'5 Fr profilaktik',r_pd_cm:3,r_drain:'Kontrast drenajı yeterli',r_fl_t:7,r_asge:'2'}}
+ }
+};
+
+function resetPane(m){
+  const pane=$('pane-'+m);
+  pane.querySelectorAll('input,select').forEach(e=>{
+    if(e.closest('tbody[id]')) return;
+    if(e.type==='checkbox'||e.type==='radio') e.checked=e.defaultChecked;
+    else if(e.tagName==='SELECT'){ const i=[...e.options].findIndex(o=>o.defaultSelected); e.selectedIndex=i<0?0:i; }
+    else e.value=e.defaultValue;
+  });
+  pane.querySelectorAll('.chip.on').forEach(b=>b.classList.remove('on'));
+  pane.querySelectorAll('tbody[id]').forEach(tb=>tb.innerHTML='');
+}
+function applyPreset(m,key){
+  const p=PRESETS[m][key]; resetPane(m);
+  Object.entries(p.v||{}).forEach(([k,x])=>setv(k,x));
+  Object.entries(p.c||{}).forEach(([g,a])=>setChips(g,a));
+  (p.les||[]).forEach(lesRow); (p.pol||[]).forEach(polRow); (p.eus||[]).forEach(eusRow);
+  Object.entries(p.ses||{}).forEach(([i,a])=>a.forEach((x,j)=>setv('ses_'+i+'_'+j,x)));
+  update();
+}
+
+/* ===================== SKORLAR ===================== */
+function bbps(){ const b=[+v('k_b1'),+v('k_b2'),+v('k_b3')]; return {b,t:b[0]+b[1]+b[2],ok:b.every(x=>x>=2)}; }
+function uceis(){ const a=+v('k_u1'),b=+v('k_u2'),c=+v('k_u3'),t=a+b+c; return {a,b,c,t,band:t<=1?'remisyon':t<=4?'hafif':t<=6?'orta':'ağır'}; }
+function sescd(){ let t=0,aff=0; const seg=SES_SEG.map((s,i)=>{ let st=0; for(let j=0;j<4;j++) st+=+v('ses_'+i+'_'+j); t+=st; if(st>0) aff++; return st; });
+  return {t,aff,seg,band:t<=2?'remisyon':t<=6?'hafif aktivite':t<=15?'orta aktivite':'ağır aktivite'}; }
+function cann(){ const a=n('r_n'),t=n('r_t'),p=n('r_p'); const any=a!==null||t!==null||p!==null; return {a,t,p,any,diff:(a||0)>5||(t||0)>5||(p||0)>1}; }
+function erefs(){ const e=+v('e_ef_e'),r=+v('e_ef_r'),x=+v('e_ef_x'),f=+v('e_ef_f'),s=+v('e_ef_s'); return {e,r,x,f,s,t:e+r+x+f+s}; }
+function box(id,txt,cls){ const el=$(id); el.textContent=txt; el.className='score '+(cls||''); }
+
+/* ===================== ORTAK RAPOR PARÇALARI ===================== */
+function head(title){
+  const d=v('c_tarih')?v('c_tarih').split('-').reverse().join('.'):'';
+  const at=v('c_at')==='Yok'?'Yok':v('c_at')+(v('c_atd')!=='—'?' ('+lc(v('c_atd'))+')':'');
+  const tb=(rows,cls)=>{ let t='<table class="kv'+(cls?' '+cls:'')+'">'; for(let i=0;i<rows.length;i+=2){ t+='<tr><td class="k">'+rows[i][0]+'</td><td>'+esc(rows[i][1])+'</td>'+(rows[i+1]?'<td class="k">'+rows[i+1][0]+'</td><td>'+esc(rows[i+1][1])+'</td>':'<td></td><td></td>')+'</tr>'; } return t+'</table>'; };
+  const pid=[['Hasta',v('c_ad')||'……………………'],['Protokol no',v('c_prot')],['Yaş / Cinsiyet',(v('c_yas')?v('c_yas')+' / ':'')+v('c_cins')]].filter(x=>x[1]);
+  const kv=[['Tarih / Saat',d+(v('c_saat')?' – '+v('c_saat'):'')],
+    ['Endoskopist',v('c_endo')],['Yardımcı personel',v('c_yard')],['Hasta türü',v('c_tur')],['ASA',v('c_asa')],['Antitrombotik',at],['Cihaz',v('c_cihaz')],['Onam',v('c_onam')?'Yazılı aydınlatılmış onam alındı':'Belirtilmedi']].filter(x=>x[1]);
+  const t=tb(pid,'pid')+tb(kv);
+  return '<div class="rh"><div class="inst">'+esc(v('c_kurum'))+'</div><div class="ttl">'+title+'</div></div>'+t;
+}
+function sedTxt(){
+  const s=v('c_sed'); let a=[];
+  if(s==='Sedasyonsuz') a.push('İşlem sedasyonsuz yapıldı.');
+  else a.push(s+(v('c_doz')?' ('+esc(v('c_doz'))+')':'')+'; sedasyon düzeyi: '+lc(v('c_sedlvl'))+'; uygulayan: '+lc(v('c_sedby'))+'.');
+  if(v('c_mon')) a.push('Monitörizasyon: SpO₂, NIBP, EKG'+(v('c_o2')?'; nazal O₂ desteği':'')+'.');
+  a.push('İnsüflasyon: '+v('c_ins')+'.');
+  return P(a.join(' '));
+}
+function sig(){ return '<div class="sig">'+esc(v('c_endo'))+'<br>İmza / Kaşe</div>'; }
+const END = (g,txt) => esc(join([...ch(g),v(txt)]))||'—';
+
+/* ===================== ÜST GİS RAPORU ===================== */
+function rEGD(){
+  const W=[],S=mk(),dx=[],L=rows('egd-les');
+  S.sec('Endikasyon',P(END('e_end','e_end_txt')));
+  S.sec('Sedasyon ve izlem',sedTxt());
+  const reach=v('e_reach'),t=n('e_time');
+  const RT={D2:'inen duodenum (D2)',Bulbus:'bulbus',Mide:'mide (pilor geçilemedi)',Ozofagus:'özofagus (ilerlenemedi)'};
+  let tech=['Endoskop '+RT[reach]+' düzeyine kadar ilerletildi.'];
+  if(ch('e_img').length) tech.push('Görüntüleme: '+ch('e_img').join(', ')+'.');
+  tech.push('Mukoza görünürlüğü: '+lc(v('e_vis'))+'.');
+  tech.push('Midede retrofleksiyon '+(v('e_retro')?'yapıldı':'yapılmadı')+'.');
+  if(t!==null) tech.push('İnceleme süresi: '+t+' dk.');
+  tech.push('Fotodokümantasyon '+(v('e_photo')?'yapıldı':'yapılmadı')+'.');
+  S.sec('İşlem tekniği',P(tech.join(' ')));
+
+  // Özofagus
+  const la=v('e_la'),scj=v('e_scj'),z=n('e_zcm'),hh=n('e_hh'),hill=v('e_hill'),vr=v('e_var'),oz=ch('e_oz');
+  const ozL=L.filter(l=>OZ_LOC.includes(l.l));
+  const zt=z?', ön dişlerden '+z+' cm’de':'';
+  let O=[];
+  const ozNormal= la==='Yok'&&scj==='Düzenli'&&!hh&&vr==='Yok'&&!oz.length&&!ozL.length;
+  const lesS=(arr)=>arr.map(l=>{ const i=L.indexOf(l)+1; return l.l+': '+(l.s?l.s+' mm ':'')+lc(l.t)+(l.c!=='—'?' ('+l.c+')':'')+' – Lezyon '+i+'.'; });
+  if(ozNormal) O.push('Özofagus mukozası, lümen çapı ve peristaltizm doğal. Z-hattı düzenli'+zt+'.');
+  else{
+    if(la!=='Yok'){ O.push('Distal özofagusta Los Angeles grade '+la+' ile uyumlu mukozal kırıklar.'); dx.push('Reflü özofajit (Los Angeles grade '+la+')'); }
+    if(scj==='Düzenli') O.push('Z-hattı düzenli'+zt+'.');
+    else if(scj.startsWith('Düzensiz')){ O.push('Z-hattı düzensiz, <1 cm dil şeklinde uzantılar'+zt+'.'); dx.push('Düzensiz Z-hattı'); }
+    else{ const c=n('e_c'),m=n('e_m'); O.push('Barrett özofagusu ile uyumlu kolumnar mukoza: Prague C'+(c??'?')+'M'+(m??'?')+zt+'.'); dx.push('Barrett özofagusu şüphesi (Prague C'+(c??'?')+'M'+(m??'?')+')');
+      if(c!==null&&m!==null&&m<c) W.push('Prague: M değeri C’den küçük olamaz.');
+      if(m!==null&&m<1) W.push('M <1 cm: düzensiz Z-hattı olarak raporlanmalı; rutin biyopsi önerilmez (ESGE).');
+      if(!ch('e_bx').includes('Barrett – Seattle protokolü')) W.push('Barrett: Seattle protokolü (4 kadran / 2 cm) + görünür lezyondan hedefli biyopsi önerilir.'); }
+    if(hh){ O.push(hh+' cm hiatal herni.'); dx.push(hh+' cm hiatal herni'); }
+    if(vr!=='Yok'){ const st=v('e_vstig'); O.push('Özofagus varisleri: '+lc(vr)+'; kırmızı renk işaretleri '+(v('e_rcs')?'mevcut':'yok')+(st!=='Yok'?'; '+lc(st):'')+'.');
+      dx.push('Özofagus varisleri ('+lc(vr)+(v('e_rcs')?', kırmızı renk işaretli':'')+')');
+      if((vr.startsWith('Büyük')||v('e_rcs'))&&!n('e_evl')&&!ch('e_rec').some(x=>x.startsWith('NSBB'))) W.push('Yüksek riskli varis: NSBB (karvedilol tercih) veya EVL ile primer profilaksi önerilir (Baveno VII).'); }
+    const OZT={'Kandida plakları':'Mukozada beyaz, yapışık kandida plakları.','Schatzki halkası':'Distal özofagusta Schatzki halkası.','Peptik darlık':'Distal özofagusta peptik darlık.',
+      'Mallory-Weiss yırtığı':'ÖGB düzeyinde Mallory-Weiss yırtığı.','Özofagus divertikülü':'Özofagus divertikülü.','Akalazya ile uyumlu görünüm':'Dilate özofagus lümeni ve ÖGB düzeyinde direnç; akalazya açısından manometri ile değerlendirilmeli.'};
+    oz.forEach(x=>{ if(x==='EoE bulguları'){ const e=erefs(); O.push('Eozinofilik özofajit ile uyumlu bulgular – EREFS '+e.t+'/8 (ödem '+e.e+', halka '+e.r+', eksüda '+e.x+', çizgilenme '+e.f+', darlık '+e.s+').'); dx.push('Eozinofilik özofajit ile uyumlu görünüm (EREFS '+e.t+')');
+        if(!ch('e_bx').some(b=>b.startsWith('EoE'))) W.push('EoE şüphesi: farklı düzeylerden ≥6 biyopsi önerilir.'); }
+      else { O.push(OZT[x]); dx.push(x.replace(' ile uyumlu görünüm','')); } });
+  }
+  if(ozL.length) O.push(...lesS(ozL));
+  if(v('e_hill')!=='Değerlendirilmedi') O.push('Retrofleksiyonda ÖGB flep valvi Hill grade '+hill+'.');
+
+  // Mide – bölge bölge
+  const mid=ch('e_mid'),kim=v('e_kim'),gv=v('e_gv'); const gL=L.filter(l=>GAST_LOC.includes(l.l));
+  const lesOne=l=>{ const i=L.indexOf(l)+1, sub=l.l.includes(' – ')?l.l.split(' – ')[1]+': ':''; return sub+(l.s?l.s+' mm ':'')+lc(l.t)+(l.c!=='—'?' ('+l.c+')':'')+' – Lezyon '+i; };
+  let MiH;
+  if(reach==='Ozofagus') MiH=P('Mide değerlendirilemedi.');
+  else{
+    const reg={}; GREG.forEach(r=>reg[r]=[]); const gen=[];
+    mid.forEach(x=>{ dx.push(x);
+      if(x==='Eritematöz gastropati'||x==='Eroziv gastropati'){ const lo=ch('e_gloc'); (lo.length?lo:['Antrum']).forEach(r=>reg[r].push(lc(x))); }
+      else if(MID_REG[x]) MID_REG[x].forEach(r=>reg[r].push(lc(x)));
+      else if(x!=='Safra reflüsü') gen.push(x+'.'); });
+    if(gv!=='Yok'){ if(GV_REG[gv]) reg[GV_REG[gv]].push('gastrik varis ('+gv+', Sarin)'); else gen.push('Gastrik varis: '+gv+' (Sarin).'); dx.push('Gastrik varis ('+gv+')'); }
+    gL.forEach(l=>reg[gReg(l.l)].push(lesOne(l)));
+    const items=['<b>Lümen içeriği:</b> '+(mid.includes('Safra reflüsü')?'safralı sıvı (safra reflüsü)':'normal mide içeriği')+'.'];
+    GREG.forEach(r=>items.push('<b>'+r+(['Kardiya','Fundus'].includes(r)&&v('e_retro')?' (retrofleksiyonda)':'')+':</b> '+(reg[r].length?reg[r].join('; '):'doğal görünümde')+'.'));
+    if(kim==='Atrofi yok') gen.push('Endoskopik atrofi bulgusu yok.');
+    else if(kim!=='Değerlendirilmedi'){ gen.push('Endoskopik atrofi sınırı: Kimura-Takemoto '+kim+'.'); dx.push('Endoskopik atrofi (Kimura-Takemoto '+kim+')'); }
+    MiH=UL(items)+(gen.length?P(gen.join(' ')):'');
+    if((kim.startsWith('O')||mid.includes('İM şüphesi (görüntüleme ile)'))&&!ch('e_bx').some(b=>b.startsWith('Güncellenmiş Sydney'))) W.push('Atrofi / İM şüphesi: evreleme için Sydney protokolü (ayrı kaplar) önerilir (MAPS II).');
+  }
+  // Duodenum – bölge bölge
+  let DH; const duo=ch('e_duo'),dL=L.filter(l=>DUO_LOC.includes(l.l));
+  if(reach==='Ozofagus'||reach==='Mide') DH=P('Duodenum değerlendirilemedi.');
+  else{
+    const reg={'Bulbus':[],'İnen duodenum (D2)':[]}, gen=[];
+    duo.forEach(x=>{ dx.push(x); const r=DUO_REG[x]; if(r) reg[r].push(lc(x)); else gen.push(x+'.'); });
+    dL.forEach(l=>reg[l.l.startsWith('Bulbus')?'Bulbus':'İnen duodenum (D2)'].push(lesOne(l)));
+    const items=['<b>Bulbus:</b> '+(reg['Bulbus'].length?reg['Bulbus'].join('; '):'doğal görünümde')+'.',
+      '<b>İnen duodenum (D2):</b> '+(reach!=='D2'?'değerlendirilemedi':reg['İnen duodenum (D2)'].length?reg['İnen duodenum (D2)'].join('; '):'doğal; villöz patern korunmuş')+'.'];
+    DH=UL(items)+(gen.length?P(gen.join(' ')):'');
+  }
+  let F='<p><span class="sub">Özofagus:</span> '+O.join(' ')+'</p><p class="sub">Mide:</p>'+MiH+'<p class="sub">Duodenum:</p>'+DH;
+
+  // Lezyon tablosu + uyarılar
+  if(L.length){
+    F+='<table class="lt"><thead><tr><th>No</th><th>Tip</th><th>Lokalizasyon</th><th>Boyut</th><th>Sınıflama</th><th>Girişim</th></tr></thead><tbody>'+
+      L.map((l,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(l.t)+'</td><td>'+esc(l.l)+'</td><td>'+(l.s?esc(l.s)+' mm':'—')+'</td><td>'+esc(l.c)+'</td><td>'+esc(l.a)+'</td></tr>').join('')+'</tbody></table>';
+    L.forEach((l,i)=>{ const k='Lezyon '+(i+1)+': ';
+      dx.push(l.l+' '+(l.s?l.s+' mm ':'')+lc(l.t)+(l.c!=='—'?' ('+l.c+')':'')+(l.a!=='—'&&l.a!=='Biyopsi'?' – '+lc(l.a)+' uygulandı':''));
+      if(['Forrest Ia','Forrest Ib','Forrest IIa'].includes(l.c)&&['—','Biyopsi'].includes(l.a)) W.push(k+l.c+' – endoskopik hemostaz önerilir (ESGE 2021).');
+      if(l.c==='Forrest IIb'&&l.a==='—') W.push(k+'Forrest IIb – pıhtının kaldırılıp altta yatan lezyonun tedavisi değerlendirilmeli.');
+      if(l.a==='Adrenalin enjeksiyonu (tek başına)') W.push(k+'Adrenalin monoterapisi önerilmez; ikinci bir hemostaz yöntemi ekleyin (ESGE 2021).');
+      if(l.t==='Ülser'&&GAST_LOC.includes(l.l)&&!ch('e_rec').some(x=>x.startsWith('Gastrik ülser'))) W.push(k+'Gastrik ülser – malignite dışlanması için biyopsi ve 8–12 hafta sonra iyileşme kontrolü önerilir.');
+      if(['Forrest Ia','Forrest Ib','Forrest IIa','Forrest IIb'].includes(l.c)&&!ch('e_rec').some(x=>x.startsWith('Yüksek doz PPI'))) W.push(k+'Endoskopik hemostaz sonrası yüksek doz PPI (72 saat) önerilir.');
+    });
+  }
+  S.sec('Bulgular',F);
+
+  // Girişimler ve örnekler
+  let G=[],kap=0,K=[];
+  if(n('e_evl')) G.push('Özofagus varislerine '+n('e_evl')+' adet bant ligasyonu uygulandı.');
+  if(v('e_dil')) G.push('Dilatasyon: '+esc(v('e_dil'))+'.');
+  ch('e_ther').forEach(x=>G.push(x+'.'));
+  if(v('e_ther_txt')) G.push(esc(v('e_ther_txt')));
+  L.forEach((l,i)=>{ if(l.a.includes('Biyopsi')||l.a.includes('polipektomi')) K.push('Kap '+(++kap)+': Lezyon '+(i+1)+' – '+esc(l.l)+' ('+lc(l.a)+')'); });
+  const bx=ch('e_bx');
+  if(bx.some(b=>b.startsWith('Güncellenmiş Sydney'))){ K.push('Kap '+(++kap)+': Antrum (×2, küçük ve büyük kurvatur) + insisura angularis (×1)'); K.push('Kap '+(++kap)+': Korpus (×2, küçük ve büyük kurvatur)'); }
+  if(bx.some(b=>b.startsWith('Çölyak'))){ K.push('Kap '+(++kap)+': İnen duodenum (D2) ×4'); K.push('Kap '+(++kap)+': Bulbus ×2'); }
+  if(bx.some(b=>b.startsWith('EoE'))){ K.push('Kap '+(++kap)+': Proksimal özofagus ×3'); K.push('Kap '+(++kap)+': Distal özofagus ×3'); }
+  if(bx.includes('Barrett – Seattle protokolü')) K.push('Kap '+(++kap)+'…: Barrett segmenti – Seattle protokolü (4 kadran, her 2 cm; her düzey ayrı kap)');
+  if(bx.includes('Hedefli biyopsi')) K.push('Kap '+(++kap)+': Hedefli biyopsi');
+  const hp=v('e_hp'); let hpT='';
+  if(hp!=='Yapılmadı') hpT='H. pylori: '+lc(hp)+(bx.includes('HÜT (antrum + korpus)')?' (antrum + korpus örneklerinden)':'')+'.';
+  if(hp==='Hızlı üreaz testi pozitif') dx.push('H. pylori pozitif (hızlı üreaz testi)');
+  S.sec('Girişimler ve örnekler',(G.length?P(G.join(' ')):'')+(K.length?UL(K):'')+(hpT?P(hpT):'')+(!G.length&&!K.length&&!hpT?P('Girişim yapılmadı; biyopsi alınmadı.'):''));
+
+  S.sec('Komplikasyon',P(esc(v('e_comp'))+(v('e_comp_txt')?' – '+esc(v('e_comp_txt')):'')+'.'));
+  S.sec('Sonuç (endoskopik tanı)',OL(dx.length?dx.map(esc):['Normal özofagogastroduodenoskopi']));
+  const rec=[...ch('e_rec'),v('e_rec_txt')].filter(Boolean).map(esc);
+  if(v('e_scj').startsWith('Barrett')&&n('e_m')!==null&&n('e_m')>=1){ const m=n('e_m'); rec.push('Displazi saptanmazsa Barrett sürveyansı: '+(m<3?'5 yıl':m<10?'3 yıl':'uzman merkeze yönlendirme')+' (ESGE 2023, M uzunluğuna göre).'); }
+  S.sec('Öneriler',UL(rec)||P('—'));
+  if(t!==null&&t<7) W.push('İnceleme süresi <7 dk: ilk tanısal EGD’de ≥7 dk önerilir (ESGE kalite ölçütü).');
+  if(v('c_qi')) S.sec('Kalite göstergeleri','<div class="qi">'+[
+    ok(t!==null&&t>=7)+' İnceleme süresi ≥7 dk (ESGE)', ok(v('e_photo'))+' Fotodokümantasyon', ok(v('e_retro'))+' Retrofleksiyon',
+    ok(true)+' Standart sınıflamalar (LA, Prague, Forrest, Kimura-Takemoto, Sarin)',
+    (v('e_scj').startsWith('Barrett')?ok(bx.includes('Barrett – Seattle protokolü'))+' Barrett’ta Seattle protokolü':'')
+  ].filter(Boolean).join(' &nbsp;·&nbsp; ')+'</div>');
+  return {html:head('ÖZOFAGOGASTRODUODENOSKOPİ RAPORU')+S.html()+sig(),warn:W};
+}
+
+/* ===================== KOLONOSKOPİ RAPORU ===================== */
+function rCol(){
+  const W=[],S=mk(),dx=[],Pl=rows('col-pol');
+  S.sec('Endikasyon',P(END('k_end','k_end_txt')));
+  S.sec('Sedasyon ve izlem',sedTxt());
+  const B=bbps();
+  S.sec('Barsak hazırlığı',P('Rejim: '+lc(v('k_prep'))+'. BBPS: sağ '+B.b[0]+' – transvers '+B.b[1]+' – sol '+B.b[2]+' = <b>'+B.t+'/9</b> ('+(B.ok?'yeterli':'yetersiz')+'; yeterlilik ölçütü her segmentte ≥2).'));
+  if(!B.ok) W.push('BBPS’de en az bir segment <2: yetersiz hazırlık; daha yoğun rejimle 1 yıl içinde tekrar kolonoskopi önerilir (ESGE 2019).');
+
+  const reach=v('k_reach'),complete=['Terminal ileum','Çekum'].includes(reach),land=ch('k_land');
+  let tech=[];
+  if(complete){ tech.push('Çekum entübasyonu sağlandı'+(land.filter(x=>x!=='Çekum fotoğrafla belgelendi').length?'; kanıtlayıcı işaretler: '+land.filter(x=>x!=='Çekum fotoğrafla belgelendi').map(lc).join(', '):'')+(land.includes('Çekum fotoğrafla belgelendi')?' (fotoğrafla belgelendi)':'')+'.');
+    if(reach==='Terminal ileum') tech.push('Terminal ileum'+(n('k_ti')?' '+n('k_ti')+' cm':'')+' entübe edildi.');
+    if(land.filter(x=>x!=='Çekum fotoğrafla belgelendi').length<2&&!land.includes('Terminal ileum')) W.push('Çekum entübasyonu için en az iki anatomik işaret (apendiks orifisi, ileoçekal valv) ve fotoğraf belgesi önerilir.'); }
+  else { tech.push('Kolonoskop '+lc(reach)+' düzeyine kadar ilerletilebildi (neden: '+lc(v('k_inc'))+'); proksimal segmentler değerlendirilemedi.'); dx.push('Tamamlanamamış kolonoskopi ('+lc(reach)+' düzeyine kadar)'); }
+  const tt=[n('k_tcec')!==null?'çekuma ulaşma '+n('k_tcec')+' dk':'',n('k_twd')!==null?'geri çekilme (polipektomi hariç) '+n('k_twd')+' dk':'',n('k_ttot')!==null?'toplam '+n('k_ttot')+' dk':''].filter(Boolean);
+  if(tt.length) tech.push('Süreler: '+tt.join('; ')+'.');
+  tech.push('Rektumda retrofleksiyon '+(v('k_retro')?'yapıldı':'yapılmadı')+'.');
+  if(v('k_posch')) tech.push('Pozisyon değişikliği uygulandı.');
+  if(ch('k_img').length) tech.push('Görüntüleme / teknik: '+ch('k_img').join(', ')+'.');
+  if(v('k_glou')) tech.push('Hasta konforu (Gloucester): '+v('k_glou')+'/5.');
+  S.sec('İşlem tekniği',P(tech.join(' ')));
+
+  // Polip kapları ve uyarılar
+  let kap=0; const K=[];
+  Pl.forEach((p,i)=>{
+    const s=+p.s||0, pc=p.m.includes('piecemeal'), leave=p.m.startsWith('Yerinde')||p.m.startsWith('Bırakıldı');
+    p.enbloc = pc?false:(p.m.includes('en bloc')||p.m==='ESD')?true:p.e==='Evet';
+    p.kap = (!leave && p.r==='Evet') ? ++kap : null;
+    if(p.kap) K.push('Kap '+p.kap+': Polip '+(i+1)+' – '+p.l+(p.d?' ('+p.d+' cm)':'')+', '+(s||'?')+' mm');
+    const k='Polip '+(i+1)+': ';
+    if(p.m==='Soğuk forseps'&&s>3) W.push(k+'soğuk forseps yalnız ≤3 mm poliplerde (snare güç ise) önerilir; ≤9 mm için soğuk snare tercih edilmeli (ESGE 2017).');
+    if(p.m==='Sıcak snare'&&s>0&&s<10&&p.p!=='0-Ip') W.push(k+'<10 mm nonpediküllü polipte sıcak snare önerilmez; soğuk snare tercih edilmeli (ESGE 2017).');
+    if(['NICE 3 (derin SM invazyon)','JNET 2B','JNET 3'].includes(p.o)||['0-IIc','0-IIa+IIc','LST-NG psödodeprese'].includes(p.p)) W.push(k+'submukozal invazyon şüphesi taşıyan morfoloji/optik tanı – en bloc rezeksiyon (ESD) veya cerrahi açısından multidisipliner değerlendirme; tatuaj önerilir.');
+    if(s>=20&&pc&&!p.x.startsWith('Kenar ablasyonu')) W.push(k+'≥20 mm piecemeal EMR sonrası rezeksiyon kenarına termal ablasyon (STSC) önerilir (ESGE).');
+    if(p.r==='Hayır'&&!leave) W.push(k+'polip geri alınamadı – raporda belirtildi; histoloji yokluğu izlem kararını etkiler.');
+    if(p.p==='0-Ip'&&s>=20&&!['Profilaktik klip','Endoloop','Klip + tatuaj'].includes(p.x)) W.push(k+'≥20 mm başlı pediküllü polipte profilaktik mekanik hemostaz (klip/endoloop) önerilir (ESGE).');
+  });
+
+  // Bulgular – segment segment
+  const ri=SEGS.indexOf(reach);
+  const div=v('k_div'),hem=v('k_hem'),oth=ch('k_oth'),ibd=v('k_ibd');
+  const desc=(p,i)=>{ const s=p.s?p.s+' mm':'boyutu belirtilmemiş';
+    let t=s+', Paris '+p.p+(p.o!=='Değerlendirilmedi'?', '+p.o:'')+' lezyon (Polip '+(i+1)+(p.d?'; anal kenardan '+p.d+' cm':'')+'): ';
+    if(p.m.startsWith('Biyopsi')) t+='biyopsi alındı';
+    else if(p.m.startsWith('Yerinde')) t+='yüksek güvenli optik tanı ile yerinde bırakıldı';
+    else if(p.m.startsWith('Bırakıldı')) t+='rezeke edilmedi; ileri tedavi için yönlendirildi';
+    else { t+=METH_TXT[p.m]+' rezeke edildi'; if(!/en bloc|piecemeal/.test(METH_TXT[p.m])) t+=' ('+(p.enbloc?'en bloc':'parçalı')+')'; t+=', '+(p.r==='Evet'?'geri alındı':'geri alınamadı'); }
+    if(p.x!=='—') t+=', '+lc(p.x);
+    if(p.kap) t+=' (Kap '+p.kap+')';
+    return t; };
+  const seg={}; SEGS.forEach(x=>seg[x]=[]); const gen=[]; let ibdP='';
+  Pl.forEach((p,i)=>seg[p.l].push(desc(p,i)));
+  if(div!=='Yok'){ const dl=ch('k_divloc'), t=lc(div)+' yoğunlukta divertiküller, inflamasyon bulgusu yok';
+    if(dl.length) dl.forEach(d=>(DIV_REG[d]||[]).forEach(r=>seg[r].push(t))); else gen.push('Divertikülozis: '+t+' (yerleşim belirtilmedi).');
+    dx.push((dl.length?dl.join(', ')+' ':'')+'divertikülozis'); }
+  if(hem!=='Yok'){ seg['Anal kanal'].push('retrofleksiyonda '+lc(hem)+' iç hemoroidal paketler (Goligher derecesi klinik muayeneye dayanır)'); dx.push(hem+' iç hemoroid'); }
+  oth.forEach(x=>{ if(OTH_REG[x]) seg[OTH_REG[x]].push(lc(x)); else gen.push(x+'.'); if(x!=='Anastomoz – doğal görünüm') dx.push(x); });
+  if(v('k_oth_txt')) gen.push(esc(v('k_oth_txt')));
+  if(ibd==='Ülseratif kolit'){ const m=v('k_mayo'),u=uceis(), act=m!==''?+m>0:u.t>1;
+    (UC_EXT[v('k_ext').split(' – ')[0]]||[]).forEach(r=>seg[r].push(act?'ülseratif kolit ile uyumlu aktif inflamasyon':'ülseratif kolit tutulum alanı; aktif inflamasyon yok'));
+    ibdP='<p><span class="sub">Ülseratif kolit:</span> '+(m!==''?'Endoskopik Mayo skoru '+m+'. ':'')+'UCEIS '+u.t+'/8 (vasküler patern '+u.a+', kanama '+u.b+', erozyon/ülser '+u.c+'; en ağır tutulan bölgeye göre) – '+u.band+'.'+(v('k_ext')!=='—'?' Makroskopik tutulum: '+v('k_ext')+'.':'')+'</p>';
+    dx.push('Ülseratif kolit'+(v('k_ext')!=='—'?' ('+v('k_ext').split(' – ')[0]+')':'')+' – '+(m!==''?'Mayo '+m+', ':'')+'UCEIS '+u.t+' ('+u.band+')'); }
+  if(ibd==='Crohn hastalığı'){ const s=sescd(),rut=v('k_rut');
+    SES_SEG.forEach((g,i)=>{ if(!s.seg[i]) return; const comp=SES_P.map((pp,j)=>lc(pp)+' '+v('ses_'+i+'_'+j)).join(', ');
+      SES_REG[i].forEach(r=>seg[r].push('Crohn hastalığı ile uyumlu tutulum (SES-CD segment skoru '+s.seg[i]+': '+comp+')')); });
+    if(!rut.startsWith('Uygulanamaz')) seg['Terminal ileum'].push('neoterminal ileum / anastomoz: Rutgeerts '+rut.split(' – ')[0]+' ('+lc(rut.split(' – ')[1])+')');
+    ibdP='<p><span class="sub">Crohn hastalığı – SES-CD:</span> '+SES_SEG.map((g,i)=>g+' '+s.seg[i]).join(', ')+'; toplam <b>'+s.t+'</b> (tutulan segment: '+s.aff+') – '+s.band+'.'+(rut.startsWith('Uygulanamaz')?'':' Postoperatif modifiye Rutgeerts skoru: '+rut+'.')+'</p>';
+    dx.push('Crohn hastalığı – SES-CD '+s.t+' ('+s.band+')'+(rut.startsWith('Uygulanamaz')?'':'; Rutgeerts '+rut.split(' – ')[0])); }
+  const NORM={'Terminal ileum':(n('k_ti')?n('k_ti')+' cm entübe edildi; ':'')+'mukoza ve villöz yapı doğal','Çekum':'apendiks orifisi ve ileoçekal valv doğal; mukoza ve vasküler patern doğal','Anal kanal':'doğal'};
+  const items=SEGS.map((x,i)=>{ let t;
+    if(i<ri) t=(x==='Terminal ileum'&&complete)?'entübe edilmedi':'değerlendirilemedi (bu düzeye ulaşılamadı)';
+    else if(seg[x].length) t=(x==='Terminal ileum'&&n('k_ti')?n('k_ti')+' cm entübe edildi; ':'')+seg[x].join('; ');
+    else t=NORM[x]||'mukoza, vasküler patern ve lümen doğal';
+    return '<b>'+x+':</b> '+t+'.'; });
+  let FT=UL(items)+(gen.length?P('<span class="sub">Diğer:</span> '+gen.join(' ')):'')+ibdP;
+  if(Pl.length) FT+='<table class="lt"><thead><tr><th>No</th><th>Lokalizasyon</th><th>Boyut</th><th>Paris</th><th>Optik tanı</th><th>Yöntem</th><th>En bloc</th><th>Alındı</th><th>Kap</th></tr></thead><tbody>'+
+    Pl.map((p,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(p.l)+(p.d?' ('+esc(p.d)+' cm)':'')+'</td><td>'+(p.s?esc(p.s)+' mm':'—')+'</td><td>'+esc(p.p)+'</td><td>'+esc(p.o==='Değerlendirilmedi'?'—':p.o)+'</td><td>'+esc(p.m)+(p.x!=='—'?'; '+esc(lc(p.x)):'')+'</td><td>'+(p.m.startsWith('Biyopsi')||p.m.startsWith('Yerinde')||p.m.startsWith('Bırakıldı')?'—':p.enbloc?'Evet':'Hayır')+'</td><td>'+esc(p.r)+'</td><td>'+(p.kap||'—')+'</td></tr>').join('')+'</tbody></table>';
+  S.sec('Bulgular (proksimalden distale)',FT);
+
+  // Polip tanı satırı
+  if(Pl.length){ const res=Pl.filter(p=>!p.m.startsWith('Biyopsi')&&!p.m.startsWith('Yerinde')&&!p.m.startsWith('Bırakıldı')).length; const mx=Math.max(...Pl.map(p=>+p.s||0));
+    dx.unshift(Pl.length+' adet kolorektal polip / lezyon ('+Pl.map(p=>p.l.toLocaleLowerCase('tr')+' '+(p.s||'?')+' mm').join('; ')+'; en büyüğü '+mx+' mm); '+res+' tanesi endoskopik olarak rezeke edildi'); }
+
+  // Örnekler
+  ch('k_bx').forEach(b=>{
+    if(b.startsWith('Random')){ K.push('Kap '+(++kap)+': Random biyopsi – sağ kolon'); K.push('Kap '+(++kap)+': Random biyopsi – sol kolon'); }
+    else if(b.startsWith('İBH segmental')){ ['Terminal ileum','Sağ kolon','Transvers kolon','Sol kolon','Rektum'].forEach(s=>K.push('Kap '+(++kap)+': '+s+' (≥2)')); }
+    else if(b.startsWith('Terminal ileum')) K.push('Kap '+(++kap)+': Terminal ileum');
+    else if(b.startsWith('Displazi')) K.push('Kap '+(++kap)+': Hedefli biyopsiler (displazi sürveyansı)');
+    else if(b.startsWith('Kitleden')) K.push('Kap '+(++kap)+': Kitleden biyopsi (≥6 parça)');
+  });
+  S.sec('Örnekler (patolojiye gönderilen)',K.length?UL(K):P('Örnek alınmadı.'));
+  S.sec('Komplikasyon',P(esc(v('k_comp'))+(v('k_comp_txt')?' – '+esc(v('k_comp_txt')):'')+'.'));
+  S.sec('Sonuç (endoskopik tanı)',OL(dx.length?dx.map(esc):[reach==='Terminal ileum'?'Normal kolonoskopi (terminal ileum dahil)':'Normal kolonoskopi']));
+
+  // İzlem mantığı (ESGE 2020)
+  const rec=[...ch('k_rec'),v('k_rec_txt')].filter(Boolean).map(esc); const iz=[];
+  if(!complete) iz.push('Tamamlanamamış inceleme: kalan segmentler için tekrar kolonoskopi veya BT kolonografi.');
+  if(!B.ok) iz.push('Yetersiz barsak hazırlığı: daha yoğun hazırlıkla 1 yıl içinde tekrar kolonoskopi (ESGE 2019).');
+  if(Pl.some(p=>(+p.s||0)>=20&&p.m.includes('piecemeal'))) iz.push('≥20 mm piecemeal rezeksiyon: 3–6. ayda skar kontrolü (SC1), ardından 12 ay sonra ikinci kontrol (SC2) (ESGE 2020).');
+  if(Pl.some(p=>['NICE 3 (derin SM invazyon)','JNET 2B','JNET 3'].includes(p.o)||p.p.startsWith('Kitle'))) iz.push('Malignite şüpheli lezyon: patoloji sonucu, evreleme (BT ± MR) ve multidisipliner onkoloji konseyi.');
+  if(Pl.length&&complete&&B.ok) iz.push('Polipektomi sonrası izlem patoloji sonucuna göre (ESGE 2020): ≥1 adenom ≥10 mm veya yüksek dereceli displazi, ≥5 adenom, ≥10 mm serrated polip veya displazili serrated polip → 3 yıl sonra kolonoskopi; 1–4 adenom <10 mm (düşük dereceli displazi), <10 mm displazisiz serrated polip veya hiperplastik polip → sürveyans gerekmez, ulusal tarama programına dönüş (program yoksa 10 yıl sonra kolonoskopi).');
+  if(!Pl.length&&complete&&B.ok&&ibd==='Yok') iz.push('Polip saptanmadı: endikasyona göre izlem; ortalama risk taramada ulusal tarama programına dönüş (program yoksa 10 yıl sonra kolonoskopi).');
+  if(ibd!=='Yok') iz.push('İBH: tedavi hedeflerine göre yeniden değerlendirme; displazi sürveyansı ECCO risk sınıflamasına göre planlanmalı.');
+  S.sec('Öneriler ve izlem planı',UL([...rec,...iz.map(x=>'<b>İzlem:</b> '+x)])||P('—'));
+
+  if(ibd==='Crohn hastalığı'&&ri>0&&(sescd().seg[0]>0||!v('k_rut').startsWith('Uygulanamaz'))) W.push('Terminal ileum entübe edilmediği hâlde ileal SES-CD / Rutgeerts skoru girildi – kontrol edin.');
+  const twd=n('k_twd');
+  if(twd!==null&&twd<6) W.push('Geri çekilme süresi <6 dk (ESGE asgari ölçüt).');
+  else if(twd!==null&&twd<8) W.push('Geri çekilme süresi <8 dk (ASGE/ACG 2024 hedefi ≥8 dk).');
+  if(!v('k_retro')) W.push('Rektal retrofleksiyon belgelenmedi.');
+  if(v('c_qi')){ const ret=Pl.filter(p=>!p.m.startsWith('Yerinde')&&!p.m.startsWith('Bırakıldı')&&!p.m.startsWith('Biyopsi')); const sm=Pl.filter(p=>(+p.s||0)>0&&(+p.s)<10&&p.p!=='0-Ip');
+    S.sec('Kalite göstergeleri','<div class="qi">'+[
+      ok(complete)+' Çekum entübasyonu', ok(land.includes('Çekum fotoğrafla belgelendi'))+' Çekum fotoğraf belgesi', ok(B.ok)+' BBPS her segmentte ≥2',
+      ok(twd!==null&&twd>=6)+' Geri çekilme ≥6 dk (ESGE)'+(twd!==null?' – '+twd+' dk':''), ok(v('k_retro'))+' Rektal retrofleksiyon',
+      ret.length?'Rezeke polip geri alınma: '+ret.filter(p=>p.r==='Evet').length+'/'+ret.length:'',
+      sm.length?'<10 mm polipte soğuk snare: '+sm.filter(p=>p.m.startsWith('Soğuk snare')).length+'/'+sm.length:'',
+      Pl.length?'ADR: patoloji sonrası ünite kaydına işlenecek (hedef: ESGE ≥%25; ASGE/ACG 2024 ≥%35)':''
+    ].filter(Boolean).join(' &nbsp;·&nbsp; ')+'</div>'); }
+  return {html:head('KOLONOSKOPİ RAPORU')+S.html()+sig(),warn:W};
+}
+
+/* ===================== ERCP RAPORU ===================== */
+const STN={'Tek':'tek','2–5':'2–5 adet','>5 / çok sayıda':'çok sayıda, >5'};
+function rERCP(){
+  const W=[],S=mk(),dx=[];
+  let e=END('r_end','r_end_txt'); if(v('r_tokyo')!=='—') e+='. Akut kolanjit: Tokyo 2018 '+v('r_tokyo'); if(ch('r_img').length) e+='. Ön görüntüleme: '+ch('r_img').join(', ');
+  S.sec('Endikasyon',P(e+'.'));
+  const c=cann();
+  let pr=[esc(v('r_nsaid'))+'.']; if(v('r_lr')!=='Standart') pr.push('Laktatlı Ringer ile agresif hidrasyon (işlem sırasında 3 mL/kg/sa; sonrasında 20 mL/kg bolus + 8 saat 3 mL/kg/sa).');
+  if(v('r_ab')!=='Yok') pr.push(v('r_ab')+'.');
+  const pep=[...ch('r_pep'),c.diff?'Zor kanülasyon':'',ch('r_tech').some(x=>x.startsWith('Prekat'))?'Prekat':''].filter(Boolean);
+  if(pep.length) pr.push('PEP risk faktörleri: '+lc(pep.join(', '))+'.');
+  S.sec('Sedasyon, izlem ve profilaksi',sedTxt()+P('Hasta pozisyonu: '+lc(v('r_pos'))+'; endoskop: '+esc(v('r_scope'))+'. '+pr.join(' ')));
+
+  const native=v('r_est').startsWith('Yok')&&!v('r_stentin'), pl=v('r_ploc'), dv=v('r_div');
+  let pa=[pl==='Papilla bulunamadı'?'Papilla bulunamadı.':'Papilla yerleşimi: '+lc(pl)+'; duodenoskop '+lc(v('r_scopepos'))+'.'];
+  pa.push(dv==='Yok'?'Periampuller divertikül yok.':'Periampuller divertikül mevcut – Boix '+dv.split(' – ')[0].toLocaleLowerCase('tr')+': '+lc(dv.split(' – ')[1])+(n('r_divsz')?' (divertikül çapı ~'+n('r_divsz')+' mm)':'')+'.');
+  pa.push(native?'Daha önce sfinkterotomi yapılmamış, native papilla.':(v('r_est').startsWith('Yok')?'Native papilla.':v('r_est')+'.'));
+  if(v('r_stentin')) pa.push('Papilladan çıkan mevcut stent izlendi.');
+  if(v('r_haral')!=='Değerlendirilmedi') pa.push('Papilla morfolojisi: Haraldsson '+v('r_haral').split(' – ')[0].toLocaleLowerCase('tr')+' ('+lc(v('r_haral').split(' – ')[1])+').');
+  if(v('r_minor')!=='Değerlendirilmedi') pa.push('Minör papilla: '+lc(v('r_minor'))+'.');
+  if(ch('r_pap').length) pa.push('Papilla görünümü: '+lc(ch('r_pap').join(', '))+'.');
+  if(dv!=='Yok') dx.push('Periampuller divertikül (Boix '+dv.split(' – ')[0].toLocaleLowerCase('tr')+')');
+  if(pl==='Bulbusta (ektopik)') dx.push('Ektopik papilla (bulbus)');
+  pa.push('Hedef kanal: '+lc(v('r_tgt'))+'.');
+  if(ch('r_tech').length) pa.push('Teknik: '+lc(ch('r_tech').join(', '))+'.');
+  if(c.any) pa.push('Kanülasyon: '+(c.a??'?')+' papilla teması, '+(c.t??'?')+' dk, istemsiz pankreas kanalı kanülasyonu/opasifikasyonu '+(c.p??0)+' kez – ESGE ölçütlerine göre <b>'+(c.diff?'zor':'zor olmayan')+'</b> kanülasyon.');
+  pa.push('Derin kanülasyon '+lc(v('r_deep'))+'.');
+  S.sec('Papilla ve kanülasyon',P(pa.join(' ')));
+  if(ch('r_pap').includes('Pürülan safra akımı')) dx.push('Pürülan safra (akut kolanjit)');
+  if(v('r_deep')==='Başarısız'){ dx.push('Başarısız derin kanülasyon'); W.push('Başarısız kanülasyon: 2–4 gün içinde tekrar ERCP veya EUS/perkütan drenaj seçeneklerini değerlendirin.'); }
+
+  let co=[]; const cbd=n('r_cbd'),st=v('r_stone'),ss=n('r_ssize'),sr=v('r_stric'),lk=v('r_leak');
+  if(v('r_deep')==='Başarılı'){
+    if(cbd!==null) co.push('Koledok çapı '+cbd+' mm.');
+    co.push('İntrahepatik safra yollarında dilatasyon: '+lc(v('r_ihd'))+'.');
+    if(st!=='Yok'){ co.push('Koledokta '+STN[st]+' dolum defekti (taş)'+(ss?', en büyüğü '+ss+' mm':'')+'.'); }
+    else co.push('Dolum defekti izlenmedi.');
+    if(sr!=='Yok') co.push(sr+' düzeyinde '+(n('r_slen')?n('r_slen')+' mm uzunluğunda ':'')+'darlık.');
+    if(lk!=='Yok') co.push('Kontrast ekstravazasyonu: '+lc(lk)+' kaynaklı safra kaçağı.');
+    co.push('Safra kesesi: '+lc(v('r_gb'))+'.');
+    if(v('r_pg')!=='Yapılmadı') co.push('Pankreatografi: '+lc(v('r_pg'))+'.');
+    if(v('r_chol_txt')) co.push(esc(v('r_chol_txt')));
+  } else co.push('Derin kanülasyon sağlanamadığından tanısal kolanjiyografi elde edilemedi.');
+  S.sec('Kolanjiyografi / pankreatografi',P(co.join(' ')));
+
+  let gi=[]; const es=v('r_es');
+  if(es!=='Yok') gi.push((es==='Mevcut sfinkterotomi genişletildi'?'Mevcut sfinkterotomi genişletildi':lc(es).replace(/^./,x=>x.toLocaleUpperCase('tr'))+' biliyer sfinkterotomi yapıldı')+(v('r_escur')!=='—'?' ('+lc(v('r_escur'))+')':'')+'.');
+  if(n('r_sext')) gi.push(n('r_sext')+' adet taş çıkarıldı.');
+  if(n('r_eplbd')) gi.push(n('r_eplbd')+' mm balon ile papiller geniş balon dilatasyonu (EPLBD).');
+  ch('r_proc').forEach(x=>gi.push(x+'.'));
+  if(n('r_ps_n')) gi.push(n('r_ps_n')+' adet '+(n('r_ps_fr')??'?')+' Fr, '+(n('r_ps_cm')??'?')+' cm '+lc(v('r_ps_t'))+' plastik biliyer stent yerleştirildi.');
+  if(v('r_sems')!=='Yok') gi.push(v('r_sems')+' metal biliyer stent ('+(n('r_sems_d')??'?')+' mm × '+(n('r_sems_l')??'?')+' cm) yerleştirildi.');
+  if(v('r_pd')!=='Yok') gi.push(v('r_pd')+' pankreatik stent'+(n('r_pd_cm')?' ('+n('r_pd_cm')+' cm)':'')+' yerleştirildi.');
+  S.sec('Girişimler',P(gi.length?gi.join(' '):'Terapötik girişim yapılmadı.'));
+
+  let so=[]; if(v('r_clear')!=='Uygulanamaz') so.push('Taş temizliği: '+lc(v('r_clear'))+'.'); if(v('r_drain')!=='Uygulanamaz') so.push('Biliyer drenaj: '+lc(v('r_drain'))+'.');
+  if(n('r_fl_t')!==null||v('r_fl_d')) so.push('Floroskopi: '+(n('r_fl_t')!==null?n('r_fl_t')+' dk':'')+(v('r_fl_d')?'; doz '+esc(v('r_fl_d')):'')+'.');
+  if(v('r_asge')!=='—') so.push('ASGE karmaşıklık derecesi: '+v('r_asge')+'.');
+  S.sec('İşlem sonucu',P(so.join(' ')||'—'));
+  S.sec('Komplikasyon',P(esc(v('r_comp'))+(v('r_comp_txt')?' – '+esc(v('r_comp_txt')):'')+'.'));
+
+  if(st!=='Yok') dx.push('Koledokolitiazis ('+STN[st]+(ss?', en büyüğü '+ss+' mm':'')+')'+(v('r_clear')!=='Uygulanamaz'?' – '+lc(v('r_clear')):''));
+  if(sr!=='Yok') dx.push(sr+' darlık'+(v('r_sems')!=='Yok'||n('r_ps_n')?' – stent ile drenaj sağlandı':'')+(ch('r_proc').some(x=>x.startsWith('Fırça')||x.startsWith('Endobiliyer'))?'; doku örneklemesi yapıldı':''));
+  if(lk!=='Yok') dx.push('Safra kaçağı ('+lc(lk)+')');
+  if(cbd!==null&&st==='Yok'&&sr==='Yok') dx.push('Koledok çapı '+cbd+' mm');
+  if(!dx.length) dx.push('Normal kolanjiyografi');
+  S.sec('Sonuç (tanı)',OL(dx.map(esc)));
+  S.sec('Öneriler',UL([...ch('r_rec'),v('r_rec_txt')].filter(Boolean).map(esc))||P('—'));
+
+  if(v('r_nsaid')==='Verilmedi') W.push('Kontrendikasyon yoksa tüm hastalara işlem öncesi rektal 100 mg diklofenak/indometazin önerilir (ESGE 2020).');
+  if(v('r_nsaid')==='Verilmedi – kontrendikasyon'&&v('r_lr')==='Standart') W.push('NSAİİ verilemiyorsa Laktatlı Ringer ile agresif hidrasyon değerlendirilmeli (ESGE 2020).');
+  if((c.p||0)>0&&v('r_pd')==='Yok') W.push('İstemsiz pankreas kanalı kanülasyonu/opasifikasyonu: profilaktik 5 Fr PD stent önerilir (ESGE 2020).');
+  if(ch('r_tech').includes('Çift kılavuz tel tekniği')&&v('r_pd')==='Yok') W.push('Çift kılavuz tel tekniği sonrası profilaktik PD stent önerilir (ESGE 2020).');
+  if(st!=='Yok'&&v('r_clear')==='Uygulanamaz') W.push('Taş saptandı: taş temizliği durumunu belirtin.');
+  if(v('r_tokyo')!=='—'&&v('r_ab')==='Yok') W.push('Akut kolanjitte antibiyotik tedavisi belirtilmeli (Tokyo 2018).');
+  if(st!=='Yok'&&v('r_gb').startsWith('Yerinde')&&!ch('r_rec').some(x=>x.includes('kolesistektomi'))) W.push('Safra kesesi yerinde + koledok taşı: kolesistektomi önerisi eklenmeli.');
+  if(n('r_fl_t')===null) W.push('Floroskopi süresi / dozu kaydedilmeli (ESGE kalite ölçütü).');
+  if(v('c_qi')) S.sec('Kalite göstergeleri','<div class="qi">'+[
+    native?ok(v('r_deep')==='Başarılı')+' Native papillada hedef kanala derin kanülasyon (hedef ≥%90)':'',
+    c.any?'ESGE kanülasyon zorluğu: '+(c.diff?'zor':'zor değil'):'',
+    ok(v('r_nsaid').startsWith('Rektal'))+' Rektal NSAİİ profilaksisi',
+    st!=='Yok'?ok(v('r_clear').startsWith('Tam'))+' Koledok taşı temizliği':'',
+    sr.startsWith('Distal')?ok(v('r_sems')!=='Yok'||!!n('r_ps_n'))+' Distal darlıkta stent yerleştirme':'',
+    ok(n('r_fl_t')!==null)+' Floroskopi kaydı'
+  ].filter(Boolean).join(' &nbsp;·&nbsp; ')+'</div>');
+  return {html:head('ERCP RAPORU')+S.html()+sig(),warn:W};
+}
+
+
+/* ===================== EUS RAPORU ===================== */
+function rEUS(){
+  const W=[],S=mk(),dx=[],L=rows('eus-les');
+  S.sec('Endikasyon',P(END('u_end','u_end_txt')));
+  S.sec('Sedasyon ve izlem',sedTxt());
+  let te=[v('u_scope')+' ekoendoskop ile '+lc(v('u_route'))+' yaklaşımla inceleme yapıldı.'];
+  if(ch('u_st').length) te.push('İstasyonlar: '+ch('u_st').map(lc).join(', ')+'.');
+  if(ch('u_adj').length) te.push('Ek modaliteler: '+ch('u_adj').join(', ')+'.');
+  S.sec('İşlem tekniği',P(te.join(' ')));
+  const lt=(l,i)=>(l.a?l.a+(l.b?'×'+l.b:'')+' mm ':'')+lc(l.e)+' lezyon'+(l.k!=='—'?', '+lc(l.k)+' kaynaklı':'')+(l.f?' ('+esc(l.f)+')':'')+(l.x!=='—'?'; '+l.x+(l.g!=='—'?' '+l.g:'')+(l.n?', '+l.n+' pasaj':''):'')+' – Lezyon '+(i+1);
+  const at=k=>L.map((l,i)=>[l,i]).filter(([l])=>l.l===k).map(([l,i])=>lt(l,i));
+  // Pankreas bölge bölge
+  const pi=PANC.map(r=>{ const f=at('Pankreas – '+r.toLocaleLowerCase('tr')); return '<b>'+r+':</b> '+(f.length?f.join('; '):'parankim ekojenitesi ve yapısı doğal, odak lezyon yok')+'.'; });
+  const mq=v('u_mpdq'),mpd=n('u_mpd');
+  pi.push('<b>Ana pankreas kanalı:</b> '+lc(mq)+(mpd!==null?' (çap '+mpd+' mm)':'')+'.');
+  const ros=ch('u_ros'); if(ros.length) pi.push('<b>Parankim / kanal bulguları:</b> '+lc(ros.join(', '))+'.');
+  if(v('u_rosc')!=='Değerlendirilmedi') pi.push('<b>Rosemont sınıflaması:</b> '+lc(v('u_rosc'))+'.');
+  if(!v('u_pinc')){ pi.length=0; }
+  if(v('u_pinc')&&['Kronik pankreatit düşündürücü','Kronik pankreatit ile uyumlu'].includes(v('u_rosc'))) dx.push('EUS: '+lc(v('u_rosc'))+' (Rosemont)');
+  if(v('u_pinc')&&mq!=='Normal') dx.push('Ana pankreas kanalı: '+lc(mq)+(mpd!==null?' ('+mpd+' mm)':''));
+  // Diğer yapılar
+  const oi=[]; const cbd=n('u_cbd'),cf=v('u_cbdf');
+  if(v('u_binc')){
+  oi.push('<b>Koledok:</b> '+(cbd!==null?'çap '+cbd+' mm; ':'')+lc(cf)+(at('Koledok').length?'; '+at('Koledok').join('; '):'')+'.');
+  if(cf!=='Taş / sludge yok') dx.push('Koledokta '+lc(cf).replace('taş','taş'));
+  oi.push('<b>Ampulla:</b> '+(at('Ampulla').length?at('Ampulla').join('; '):v('u_amp')==='Normal'?'doğal':lc(v('u_amp')))+'.');
+  oi.push('<b>Safra kesesi:</b> '+(at('Safra kesesi').length?at('Safra kesesi').join('; '):lc(v('u_gb')))+'.');
+  if(['Taş','Sludge','Polip','Duvar kalınlaşması'].includes(v('u_gb'))) dx.push('Safra kesesinde '+lc(v('u_gb')));
+  }
+  oi.push('<b>Karaciğer (görülebilen):</b> '+(at('Karaciğer sol lob').length?at('Karaciğer sol lob').join('; '):v('u_liv')==='Normal'?'doğal':lc(v('u_liv')))+'.');
+  const lnL=L.map((l,i)=>[l,i]).filter(([l])=>l.l.startsWith('Lenf nodu')).map(([l,i])=>l.l.split(' – ')[1]+': '+lt(l,i));
+  oi.push('<b>Lenf nodları:</b> '+(lnL.length?lnL.join('; '):lc(v('u_ln')))+'.');
+  if(ch('u_vas').length) oi.push('<b>Vasküler ilişki:</b> '+ch('u_vas').join(', ')+'.');
+  oi.push('<b>Asit:</b> '+(v('u_asc')?'mevcut':'yok')+'.');
+  ['Özofagus','Mide','Duodenum','Rektum','Sol adrenal','Diğer'].forEach(k=>{ const f=at(k); if(f.length) oi.push('<b>'+k+':</b> '+f.join('; ')+'.'); });
+  if(v('u_T')||v('u_N')) oi.push('<b>Luminal evreleme:</b> '+esc([v('u_T'),v('u_N')].filter(Boolean).join(' '))+'.');
+  let F='<p class="sub">Pankreas:</p>'+(v('u_pinc')?UL(pi):P('Bu endikasyonla değerlendirilmedi.'))+(v('u_binc')?'<p class="sub">Safra yolları ve çevre yapılar:</p>':'<p class="sub">Çevre yapılar:</p>')+UL(oi);
+  if(L.length) F+='<table class="lt"><thead><tr><th>No</th><th>Lokalizasyon</th><th>Boyut</th><th>Ekojenite</th><th>Köken</th><th>Özellik</th><th>Örnekleme</th></tr></thead><tbody>'+
+    L.map((l,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(l.l)+'</td><td>'+(l.a?esc(l.a)+(l.b?'×'+esc(l.b):'')+' mm':'—')+'</td><td>'+esc(l.e)+'</td><td>'+esc(l.k)+'</td><td>'+esc(l.f||'—')+'</td><td>'+(l.x!=='—'?esc(l.x+(l.g!=='—'?' '+l.g:'')+(l.n?', '+l.n+' pasaj':'')):'—')+'</td></tr>').join('')+'</tbody></table>';
+  S.sec('Bulgular',F);
+  L.forEach((l,i)=>dx.push(l.l+' '+(l.a?l.a+(l.b?'×'+l.b:'')+' mm ':'')+lc(l.e)+' lezyon'+(l.k!=='—'?' ('+lc(l.k)+')':'')+(l.x!=='—'?' – EUS-'+l.x+' yapıldı':'')));
+  // Örnekleme
+  const sm=L.map((l,i)=>[l,i]).filter(([l])=>l.x!=='—'); let K=[];
+  sm.forEach(([l,i],k)=>K.push('Kap '+(k+1)+': Lezyon '+(i+1)+' – '+esc(l.l)+'; '+l.x+(l.g!=='—'?', '+l.g+' iğne':'')+(l.n?', '+l.n+' pasaj':'')));
+  let so=K.length?UL(K):''; if(K.length&&v('u_rose')!=='Yok') so+=P('Yerinde değerlendirme: '+v('u_rose')+'.');
+  if(ch('u_fluid').length) so+=P('Gönderilen incelemeler: '+ch('u_fluid').join(', ')+'.');
+  if(v('u_abx')) so+=P('Antibiyotik profilaksisi verildi.');
+  S.sec('Doku / sıvı örneklemesi',so||P('Örnekleme yapılmadı.'));
+  const th=[...ch('u_ther'),v('u_ther_txt')].filter(Boolean).map(esc); if(th.length){ S.sec('Terapötik girişimler',UL(th)); }
+  S.sec('Komplikasyon',P(esc(v('u_comp'))+(v('u_comp_txt')?' – '+esc(v('u_comp_txt')):'')+'.'));
+  S.sec('Sonuç (EUS tanısı)',OL(dx.length?dx.map(esc):['Normal pankreatobiliyer EUS']));
+  S.sec('Öneriler',UL([...ch('u_rec'),v('u_rec_txt')].filter(Boolean).map(esc))||P('—'));
+  const end=ch('u_end');
+  if(end.some(e=>e.includes('evrelemesi'))&&!v('u_T')&&!v('u_N')) W.push('Evreleme endikasyonu: uT / uN belirtilmeli (ASGE EUS kalite göstergesi).');
+  if(cf==='Taş'&&!ch('u_rec').some(x=>x.startsWith('ERCP'))) W.push('Koledok taşı saptandı: ERCP ile tedavi önerisi eklenmeli.');
+  if(end.includes('Pankreas solid lezyonu')&&!L.some(l=>l.l.startsWith('Pankreas'))) W.push('Pankreas solid lezyonu endikasyonu: lezyonu tabloya ekleyin veya bulunmadığını belirtin.');
+  L.forEach((l,i)=>{ if(l.x!=='—'&&l.x!=='Kist sıvısı aspirasyonu'&&!l.n) W.push('Lezyon '+(i+1)+': iğne pasaj sayısı belirtilmeli.'); });
+  if(v('c_qi')) S.sec('Kalite göstergeleri','<div class="qi">'+[
+    ok(ch('u_st').length>0)+' İnceleme istasyonları kaydedildi',
+    end.some(e=>e.includes('evrelemesi'))?ok(!!(v('u_T')||v('u_N')))+' TNM evrelemesi':'',
+    sm.length?'Doku örneklemesi: '+sm.length+' lezyon (tanısal yeterlilik patoloji sonrası kaydedilecek)':'',
+    ok(true)+' Standart sınıflamalar (Rosemont, katman kökeni)'
+  ].filter(Boolean).join(' &nbsp;·&nbsp; ')+'</div>');
+  return {html:head('ENDOSKOPİK ULTRASONOGRAFİ (EUS) RAPORU')+S.html()+sig(),warn:W};
+}
+
+/* ===================== PEG RAPORU ===================== */
+function rPEG(){
+  const W=[],S=mk(),dx=[];
+  let e=END('p_end','p_end_txt'); if(v('p_4w')) e+='. Enteral beslenme ihtiyacının 4 haftadan uzun sürmesi öngörülüyor'; if(v('p_eth')) e+='. Beslenme hedefleri hasta / yasal temsilcisi ile değerlendirildi';
+  S.sec('Endikasyon',P(e+'.'));
+  S.sec('Sedasyon ve izlem',sedTxt());
+  S.sec('Ön değerlendirme ve profilaksi',P([v('p_lab')?'Laboratuvar: '+esc(v('p_lab'))+'.':'','Antibiyotik profilaksisi: '+lc(v('p_ab'))+'.'].filter(Boolean).join(' ')));
+  S.sec('Tanısal EGD',P(v('p_egd').startsWith('Belirgin')?'Özofagus, mide ve duodenumda PEG’e engel olacak patoloji saptanmadı.':esc(v('p_egd_txt')||'Bulgu açıklanmadı.')));
+  const m=v('p_meth'), sf=[v('p_trans')?'transillüminasyon':'',v('p_finger')?'parmak indentasyonu':'',v('p_safe')?'güvenli trakt testi':''].filter(Boolean);
+  let t=['Mide insüflasyonu sonrası '+lc(v('p_site'))+' bölgesinde, mide '+lc(v('p_gloc'))+' düzeyine uyan giriş noktası '+(sf.length?sf.join(', ')+' ile':'')+' belirlendi.',
+    'Cilt antisepsisi ve '+esc(v('p_la'))+' ile lokal anestezi uygulandı.'];
+  if(v('p_gpx')!=='Yok') t.push(v('p_gpx')+' gastropeksi yapıldı.');
+  if(m.startsWith('Pull')) t.push('Trokar ile mideye girilip kılavuz tel endoskopik snare ile yakalandı; tüp ağız yoluyla çekilerek (pull, Ponsky-Gauderer) yerleştirildi.');
+  else if(m.startsWith('Push')) t.push('Kılavuz tel ağızdan çıkarıldı; tüp tel üzerinden itilerek (push, Sacks-Vine) yerleştirildi.');
+  else t.push('Seldinger tekniğiyle dilatasyon sonrası tüp doğrudan perkütan olarak (introdüser, Russell) yerleştirildi.');
+  t.push((n('p_fr')?n('p_fr')+' Fr ':'')+(v('p_brand')?esc(v('p_brand'))+' ':'')+'gastrostomi tüpü '+(v('p_bump')?'iç tamponun mide ön duvarına gerilimsiz oturduğu endoskopik olarak doğrulanarak ':'')+'sabitlendi'+(n('p_mark')?'; dış tampon ciltte '+n('p_mark')+' cm işaretinde':'')+'.');
+  if(v('p_pegj')) t.push('Tüp içinden jejunal uzantı (PEG-J) yerleştirildi.');
+  S.sec('İşlem tekniği',P(t.join(' ')));
+  S.sec('Komplikasyon',P(esc(v('p_comp'))+(v('p_comp_txt')?' – '+esc(v('p_comp_txt')):'')+'.'));
+  S.sec('Sonuç',OL([esc(m.split(' (')[0]+' yöntemiyle başarılı perkütan endoskopik gastrostomi'+(n('p_fr')?' ('+n('p_fr')+' Fr)':'')+(v('p_pegj')?' + jejunal uzantı':''))]));
+  S.sec('Öneriler',UL([...ch('p_rec'),v('p_rec_txt')].filter(Boolean).map(esc))||P('—'));
+  const pe=ch('p_end');
+  if(pe.includes('İleri demans')) W.push('İleri demansta PEG ile beslenme önerilmez (ESPEN / ESGE); kararın etik ve multidisipliner değerlendirme ile belgelenmesi gerekir.');
+  if(v('p_ab')==='Verilmedi') W.push('PEG öncesi tek doz antibiyotik profilaksisi önerilir (ESGE).');
+  if(!v('p_safe')) W.push('Güvenli trakt testi belgelenmedi.');
+  if(!v('p_trans')&&!v('p_finger')) W.push('Transillüminasyon / parmak indentasyonu belgelenmedi.');
+  if(m.startsWith('Pull')&&pe.some(x=>x.startsWith('Baş-boyun')||x.startsWith('Özofagus kanseri'))) W.push('Baş-boyun / özofagus kanserinde pull yöntemiyle stomaya tümör implantasyonu bildirilmiştir; introdüser yöntemi değerlendirilebilir.');
+  if(m.startsWith('İntrodüser')&&v('p_gpx')==='Yok') W.push('İntrodüser yönteminde gastropeksi önerilir.');
+  if(!v('p_4w')) W.push('Enteral beslenmenin 4 haftadan kısa sürmesi bekleniyorsa nazogastrik beslenme düşünülebilir.');
+  if(v('c_qi')) S.sec('Kalite göstergeleri','<div class="qi">'+[
+    ok(v('p_ab')!=='Verilmedi')+' Antibiyotik profilaksisi', ok(v('p_trans')||v('p_finger'))+' Transillüminasyon / indentasyon', ok(v('p_safe'))+' Güvenli trakt testi', ok(v('p_bump'))+' İç tampon pozisyonu doğrulandı', ok(v('p_4w'))+' Endikasyon süresi (>4 hafta) belgelendi'
+  ].join(' &nbsp;·&nbsp; ')+'</div>');
+  return {html:head('PERKÜTAN ENDOSKOPİK GASTROSTOMİ (PEG) RAPORU')+S.html()+sig(),warn:W};
+}
+
+/* ===================== GÜNCELLEME ===================== */
+let M='egd';
+function update(){
+  $('e_bar').classList.toggle('hidden',!v('e_scj').startsWith('Barrett'));
+  $('e_eref').classList.toggle('hidden',!ch('e_oz').includes('EoE bulguları'));
+  const ibd=v('k_ibd'); $('k_uc').classList.toggle('hidden',ibd!=='Ülseratif kolit'); $('k_cd').classList.toggle('hidden',ibd!=='Crohn hastalığı');
+  $('k_incw').classList.toggle('hidden',['Terminal ileum','Çekum'].includes(v('k_reach')));
+  const e=erefs(); box('eref-out','EREFS toplam: '+e.t+' / 8',e.t>=4?'mid':'');
+  const B=bbps(); box('bbps-out','BBPS: '+B.t+' / 9 — '+(B.ok?'Yeterli hazırlık (her segment ≥2) ✅':'Yetersiz hazırlık ⚠️ (en az bir segment <2)'),B.ok?'ok':'bad');
+  const u=uceis(),m=v('k_mayo'); box('uc-out',(m!==''?'Mayo: '+m+' / 3  •  ':'')+'UCEIS: '+u.t+' / 8 — '+u.band,u.band==='remisyon'?'ok':u.band==='hafif'?'mid':'bad');
+  const s=sescd(); box('ses-out','SES-CD: '+s.t+' — '+s.band+' (tutulan segment: '+s.aff+')',s.t<=2?'ok':s.t<=6?'mid':'bad');
+  const c=cann(); box('cann-out',!c.any?'ESGE kanülasyon zorluğu: —':c.diff?'ZOR kanülasyon (>5 temas, >5 dk veya >1 istemsiz PD kanülasyonu) — PEP riski artmış ⚠️':'Zor olmayan kanülasyon ✅',!c.any?'':c.diff?'bad':'ok');
+  render();
+}
+function render(){
+  const r= M==='egd'?rEGD(): M==='colon'?rCol(): M==='ercp'?rERCP(): M==='eus'?rEUS(): rPEG();
+  $('report').innerHTML=r.html;
+  const w=$('warn');
+  if(r.warn.length){ w.innerHTML='<b>⚠ Kılavuz kontrolü</b> <span style="font-weight:400;color:#8a5a00">(yazdırılmaz)</span>'+UL(r.warn); w.classList.remove('hidden'); } else w.classList.add('hidden');
+}
+
+/* ===================== OLAYLAR ===================== */
+document.addEventListener('click',ev=>{
+  const t=ev.target;
+  const chip=t.closest('.chip');
+  if(chip){ const bx=chip.parentElement; if(bx.hasAttribute('data-single')){ const was=chip.classList.contains('on'); bx.querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); if(!was) chip.classList.add('on'); } else chip.classList.toggle('on'); update(); return; }
+  const tab=t.closest('nav button');
+  if(tab){ M=tab.dataset.tab; document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b===tab)); document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('hidden',p.id!=='pane-'+M)); update(); window.scrollTo(0,0); return; }
+  if(t.dataset.preset){ const [m,k]=t.dataset.preset.split(':'); applyPreset(m,k); return; }
+  if(t.dataset.reset){ resetPane(t.dataset.reset); update(); return; }
+  if(t.dataset.addles){ lesRow(LES_Q[t.dataset.addles]); update(); return; }
+  if(t.dataset.addpol){ polRow(POL_Q[t.dataset.addpol]); update(); return; }
+  if(t.dataset.addeus){ eusRow(EUS_Q[t.dataset.addeus]); update(); return; }
+  if(t.classList.contains('del')){ t.closest('tr').remove(); update(); return; }
+});
+document.addEventListener('input',update);
+document.addEventListener('change',update);
+$('btn-print').onclick=()=>window.print();
+$('btn-copy').onclick=async()=>{
+  const cl=$('report').cloneNode(true); cl.removeAttribute('id'); cl.querySelectorAll('.pid').forEach(e=>e.remove()); cl.querySelectorAll('h4').forEach(h=>h.textContent=h.textContent.toLocaleUpperCase('tr'));
+  cl.style.cssText='position:absolute;left:-10000px;top:0;width:520px'; document.body.appendChild(cl); const txt=cl.innerText.trim(); cl.remove();
+  try{ await navigator.clipboard.writeText(txt); }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  const b=$('btn-copy'),o=b.textContent; b.textContent='✔ Kopyalandı'; setTimeout(()=>b.textContent=o,1500);
+};
+$('btn-json').onclick=()=>{
+  const scope=[$('common'),$('pane-'+M)], d={modul:M,surum:'0.2',alanlar:{},secimler:{},tablolar:{}};
+  scope.forEach(sc=>{
+    sc.querySelectorAll('input[id],select[id]').forEach(e=>{ if(['c_ad','c_prot','c_kurum'].includes(e.id)) return; d.alanlar[e.id]=e.type==='checkbox'?e.checked:e.value; });
+    sc.querySelectorAll('.chips').forEach(g=>d.secimler[g.dataset.g]=ch(g.dataset.g));
+    sc.querySelectorAll('tbody[id]').forEach(tb=>d.tablolar[tb.id]=rows(tb.id));
+  });
+  if(M==='colon'){ d.skorlar={bbps:bbps(),uceis:uceis(),sescd:sescd()}; }
+  if(M==='ercp'){ d.skorlar={kanulasyon:cann()}; }
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}));
+  a.download=M+'_'+(v('c_tarih')||'tarih')+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+update();
+</script>
+</body>
+</html>
