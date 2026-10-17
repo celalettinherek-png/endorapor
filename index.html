@@ -1008,11 +1008,24 @@ document.addEventListener('input',update);
 document.addEventListener('change',update);
 $('btn-print').onclick=()=>window.print();
 $('btn-copy').onclick=async()=>{
-  const cl=$('report').cloneNode(true); cl.removeAttribute('id'); cl.querySelectorAll('.pid').forEach(e=>e.remove()); cl.querySelectorAll('h4').forEach(h=>h.textContent=h.textContent.toLocaleUpperCase('tr'));
-  cl.style.cssText='position:absolute;left:-10000px;top:0;width:520px'; document.body.appendChild(cl); const txt=cl.innerText.trim(); cl.remove();
-  try{ await navigator.clipboard.writeText(txt); }
-  catch(e){ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
-  const b=$('btn-copy'),o=b.textContent; b.textContent='✔ Kopyalandı'; setTimeout(()=>b.textContent=o,1500);
+  const src=$('report'), cl=src.cloneNode(true); cl.removeAttribute('id');
+  // Renkleri ve biçimi satır içi stile çevir (yapıştırılan programda korunması için)
+  const PROPS=['color','background-color','font-weight','font-style','font-size','text-align','text-transform','letter-spacing','border-top','border-bottom','padding','margin','vertical-align','white-space','width'];
+  const a=[src,...src.querySelectorAll('*')], b=[cl,...cl.querySelectorAll('*')];
+  a.forEach((el,i)=>{ const cs=getComputedStyle(el); b[i].removeAttribute('class');
+    b[i].style.cssText=PROPS.map(k=>{ const x=cs.getPropertyValue(k); if(!x) return ''; if(k.startsWith('border')&&x.includes('none')) return ''; if(k==='background-color'&&/rgba\(0, 0, 0, 0\)|transparent/.test(x)) return ''; if(k==='width'&&!['TABLE','TD','TH'].includes(el.tagName)) return ''; return k+':'+x; }).filter(Boolean).join(';');
+    if(el.tagName==='TABLE') b[i].setAttribute('cellspacing','0');
+    if(el.tagName==='H4'||el.classList.contains('ttl')) b[i].innerHTML='<font color="#c00000">'+b[i].innerHTML+'</font>'; });
+  b.forEach((e,i)=>{ if(a[i].classList&&a[i].classList.contains('pid')) e.remove(); });
+  cl.querySelectorAll('h4').forEach(h=>h.innerHTML=h.innerHTML.toLocaleUpperCase('tr').replace(/<FONT COLOR="#C00000">/,'<font color="#c00000">').replace('</FONT>','</font>'));
+  const html='<div style="font-family:Arial,Helvetica,sans-serif;font-size:10pt;color:#111111;line-height:1.4">'+cl.innerHTML+'</div>';
+  // Düz metin yedeği
+  const tmp=document.createElement('div'); tmp.innerHTML=html; tmp.style.cssText='position:absolute;left:-10000px;top:0;width:520px'; document.body.appendChild(tmp); const txt=tmp.innerText.trim(); tmp.remove();
+  let okk=false;
+  try{ if(window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write){ await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([txt],{type:'text/plain'})})]); okk=true; } }catch(e){}
+  if(!okk){ const d=document.createElement('div'); d.contentEditable='true'; d.innerHTML=html; d.style.cssText='position:absolute;left:-10000px;top:0;background:#fff'; document.body.appendChild(d);
+    const r=document.createRange(); r.selectNodeContents(d); const sel=getSelection(); sel.removeAllRanges(); sel.addRange(r); document.execCommand('copy'); sel.removeAllRanges(); d.remove(); }
+  const bt=$('btn-copy'),o=bt.textContent; bt.textContent='✔ Kopyalandı (renkli)'; setTimeout(()=>bt.textContent=o,1500);
 };
 $('btn-json').onclick=()=>{
   const scope=[$('common'),$('pane-'+M)], d={modul:M,surum:'0.2',alanlar:{},secimler:{},tablolar:{}};
