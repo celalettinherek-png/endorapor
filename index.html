@@ -105,7 +105,7 @@ aside#preview{position:sticky;top:58px;align-self:start;max-height:calc(100vh - 
   <aside id="preview">
     <div class="toolbar">
       <button class="pbtn" id="btn-print">🖨️ Yazdır / PDF</button>
-      <button class="pbtn alt" id="btn-copy" title="Ad soyad, protokol no ve yaş/cinsiyet kopyalanmaz (Endocam için)">📋 Metni kopyala (kimliksiz)</button>
+      <button class="pbtn alt" id="btn-copy" title="Ad soyad, protokol no, yaş/cinsiyet, tarih/saat ve ASA kopyalanmaz (Endocam için)">📋 Metni kopyala (kimliksiz)</button>
       <button class="pbtn ghost" id="btn-json" title="Ad ve protokol no hariç yapılandırılmış veri">⬇️ Anonim veri (JSON)</button>
     </div>
     <div id="warn" class="warn hidden"></div>
@@ -514,7 +514,7 @@ function box(id,txt,cls){ const el=$(id); el.textContent=txt; el.className='scor
 function head(title){
   const d=v('c_tarih')?v('c_tarih').split('-').reverse().join('.'):'';
   const at=v('c_at')==='Yok'?'Yok':v('c_at')+(v('c_atd')!=='—'?' ('+lc(v('c_atd'))+')':'');
-  const tb=(rows,cls)=>{ let t='<table class="kv'+(cls?' '+cls:'')+'">'; for(let i=0;i<rows.length;i+=2){ t+='<tr><td class="k">'+rows[i][0]+'</td><td>'+esc(rows[i][1])+'</td>'+(rows[i+1]?'<td class="k">'+rows[i+1][0]+'</td><td>'+esc(rows[i+1][1])+'</td>':'<td></td><td></td>')+'</tr>'; } return t+'</table>'; };
+  const tb=(rows,cls)=>{ let t='<table class="kv'+(cls?' '+cls:'')+'">'; for(let i=0;i<rows.length;i+=2){ const c=x=>' data-k="'+x[0]+'"'; t+='<tr><td class="k"'+c(rows[i])+'>'+rows[i][0]+'</td><td'+c(rows[i])+'>'+esc(rows[i][1])+'</td>'+(rows[i+1]?'<td class="k"'+c(rows[i+1])+'>'+rows[i+1][0]+'</td><td'+c(rows[i+1])+'>'+esc(rows[i+1][1])+'</td>':'<td></td><td></td>')+'</tr>'; } return t+'</table>'; };
   const pid=[['Hasta',v('c_ad')||'……………………'],['Protokol no',v('c_prot')],['Yaş / Cinsiyet',(v('c_yas')?v('c_yas')+' / ':'')+v('c_cins')]].filter(x=>x[1]);
   const kv=[['Tarih / Saat',d+(v('c_saat')?' – '+v('c_saat'):'')],
     ['Endoskopist',v('c_endo')],['Yardımcı personel',v('c_yard')],['Hasta türü',v('c_tur')],['ASA',v('c_asa')],['Antitrombotik',at],['Cihaz',v('c_cihaz')],['Onam',v('c_onam')?'Yazılı aydınlatılmış onam alındı':'Belirtilmedi']].filter(x=>x[1]);
@@ -1016,7 +1016,13 @@ $('btn-copy').onclick=async()=>{
     b[i].style.cssText=PROPS.map(k=>{ const x=cs.getPropertyValue(k); if(!x) return ''; if(k.startsWith('border')&&x.includes('none')) return ''; if(k==='background-color'&&/rgba\(0, 0, 0, 0\)|transparent/.test(x)) return ''; if(k==='width'&&!['TABLE','TD','TH'].includes(el.tagName)) return ''; return k+':'+x; }).filter(Boolean).join(';');
     if(el.tagName==='TABLE') b[i].setAttribute('cellspacing','0');
     if(el.tagName==='H4'||el.classList.contains('ttl')) b[i].innerHTML='<font color="#c00000">'+b[i].innerHTML+'</font>'; });
-  b.forEach((e,i)=>{ if(a[i].classList&&a[i].classList.contains('pid')) e.remove(); });
+  const NOCOPY=['Tarih / Saat','ASA'];
+  b.forEach((e,i)=>{ if(a[i].classList&&a[i].classList.contains('pid')) e.remove(); else if(NOCOPY.includes(a[i].dataset&&a[i].dataset.k)) e.remove(); });
+  // Kalan bilgi hücrelerini ikişerli satırlara yeniden diz
+  cl.querySelectorAll('table').forEach(tb=>{ const cells=[...tb.querySelectorAll('td[data-k]')]; if(!cells.length) return;
+    const body=tb.tBodies[0]||tb; body.innerHTML='';
+    for(let j=0;j<cells.length;j+=4){ const tr=document.createElement('tr'); cells.slice(j,j+4).forEach(td=>tr.appendChild(td)); body.appendChild(tr); } });
+  cl.querySelectorAll('[data-k]').forEach(e=>e.removeAttribute('data-k'));
   cl.querySelectorAll('h4').forEach(h=>h.innerHTML=h.innerHTML.toLocaleUpperCase('tr').replace(/<FONT COLOR="#C00000">/,'<font color="#c00000">').replace('</FONT>','</font>'));
   const html='<div style="font-family:Arial,Helvetica,sans-serif;font-size:10pt;color:#111111;line-height:1.4">'+cl.innerHTML+'</div>';
   // Düz metin yedeği
